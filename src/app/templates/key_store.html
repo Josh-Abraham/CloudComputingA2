@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+    <head>
+        <title>ECE1779 Assignment One</title>
+	    <link rel="stylesheet" href='/static/core-style.css' />
+    </head>
+    <body>
+	    {% include "top_bar.html" %}
+
+        {% if (keys is defined) and keys %}
+            <h3><b>List of keys stored in the database</b></h3>
+	        <p>
+	            <h3>Total number of keys= {{total}}</h3>
+            </p>
+            
+            <table>
+            <tr><th>Key List</th></tr>
+	        {% for key in keys %}
+                <tr>
+					<td>{{ key }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        {% else %}
+            <h3>There are no keys stored</h3>
+
+        {% endif %}
+    </body>
+</html>

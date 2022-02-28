@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<head>
+    <title>ECE1779 Assignment One</title>
+    <link rel="stylesheet" href='/static/core-style.css' />
+</head>
+<html>
+    <body>
+        {% include "top_bar.html" %}
+        <h3>Statistics of last 10 minutes</h3>
+        <br>
+        <div class="plot-grid">
+			<div class="plot-row">
+            {% if cache_count_plot is defined %}
+				<div class="plot">
+                	<h4>Statistics on Cache Item Count:</h4>
+                	<img src= "data:image/png;base64, {{cache_count_plot}}" alt={{cache_count_plot}}  class="image-preview"/>
+				</div>
+            {% else %}
+                <h4>Statistics on Cache Item not available</h4>
+            {% endif %}
+            
+            
+            {% if cache_size_plot is defined %}
+				<div class="plot">
+                	<h4>Statistics on Cache Size(In Bytes):</h4>
+                	<img src= "data:image/png;base64, {{cache_size_plot}}" alt={{cache_size_plot}}  class="image-preview"/>
+				</div>
+            {% else %}
+                <h4>Statistics on Cache Size not available</h4>
+            {% endif %}
+			</div>
+			<div class="plot-row">
+            
+            {% if request_plot is defined %}
+				<div class="plot">
+                	<h4>Statistics on Number of Requests:</h4>
+                	<img src= "data:image/png;base64, {{request_plot}}" alt={{request_plot}}  class="image-preview"/>
+				</div>
+            {% else %}
+                <h4>Statistics on Requests Not Available</h4>
+            {% endif %}
+                        
+            {% if miss_plot is defined %}
+				<div class="plot">
+                	<h4>Statistics on Number of Misses:</h4>
+                	<img src= "data:image/png;base64, {{miss_plot}}" alt={{miss_plot}}  class="image-preview"/>
+				</div>
+            {% else %}
+                <h4>Statistics on Misses Not Available</h4>
+            {% endif %}
+			</div>
+            
+            {% if hit_plot is defined %}
+				<div class="plot">
+                	<h4>Statistics on Number of Hits:</h4>
+                	<img src= "data:image/png;base64, {{hit_plot}}" alt={{hit_plot}}  class="image-preview"/>
+				</div>
+            {% else %}
+                <h4>Statistics on Hits Not Available</h4>
+            {% endif %}
+
+        </div>
+    </body>
+</html>
