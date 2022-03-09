@@ -1,16 +1,9 @@
-from memcache_app import config, webapp, memcache, constants
+from memcache_app import config, webapp, memcache, constants, startup
 from flask import request
 import json
 global new_cache
 
-@webapp.route('/ping', methods = ['GET'])
-def ping():
-    response = webapp.response_class(
-            response=json.dumps("OK"),
-            status=200,
-            mimetype='application/json'
-        )
-    return response
+startup.call_ready_request()
 
 @webapp.route('/put', methods = ['POST'])
 def put():
