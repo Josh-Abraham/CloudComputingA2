@@ -25,7 +25,7 @@ def call_ready_request():
     try:
         response = ec2.describe_instances(InstanceIds=[instance_id_main], DryRun=False)
         host_ip_address = response['Reservations'][0]['Instances'][0]['PublicIpAddress']
-        address = 'http://' + str(host_ip_address) + ':5000/readyRequest'
+        address = 'http://' + str(host_ip_address) + ':5001/readyRequest'
         jsonReq = {
             "ip_address": instance_ip_address,
             "instance_id": instance_id

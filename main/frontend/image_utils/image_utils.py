@@ -1,6 +1,6 @@
-from app import UPLOAD_FOLDER
+from frontend.image_utils.config import UPLOAD_FOLDER
 import os, requests, base64
-from app.db_connection import get_db
+from frontend.image_utils.db_connection import get_db
 
 ALLOWED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif'}
 

@@ -6,11 +6,13 @@
 <html>
     <body>
         {% include "top_bar.html" %}
-        <h3>Update Memory Cache Configuration</h3>
+        <h3>Cache Manager</h3>
         <form 
             class="form-outline"
             style="height: 220px; width: 600px"
-            method="post">
+            method="post"
+            action="/set_cache_params"
+            >
             <label>Memcache Last Configured: <b>{{ update_time }}</b></label><br><br>
             <label for="capacity">Insert capacity:</label>
             <input 
