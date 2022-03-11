@@ -38,7 +38,7 @@ def memcache_params():
         if not request.form.get("clear_cache") == None:
             # Clear button is hit, will clear the current cache
             requests.post(cache_host + '/clear')
-            return render_template('memcache_params.html', capacity=capacity, replacement_policy=replacement_policy, update_time=date, status="CLEAR")
+            return render_template('memcache_manager.html', capacity=capacity, replacement_policy=replacement_policy, update_time=date, status="CLEAR")
         else:
             # Check new cache paramters
             new_cap = request.form.get('capacity')
@@ -50,10 +50,10 @@ def memcache_params():
                     new_time.strftime("YYYY/MM/DD HH:mm:ss (%Y%m%d %H:%M:%S)")
                     resp = requests.post(cache_host + '/refreshConfiguration')
                     if resp.json() == 'OK':
-                        return render_template('memcache_params.html', capacity=new_cap, replacement_policy=new_policy, update_time=new_time, status="FALSE")
+                        return render_template('memcache_manager.html', capacity=new_cap, replacement_policy=new_policy, update_time=new_time, status="FALSE")
             # On error, reset to old params. Not set in the DB, so only a UI refresh is needed
-            return render_template('memcache_params.html', capacity=capacity, replacement_policy=replacement_policy, update_time=date, status="TRUE")
-    return render_template('memcache_params.html', capacity=capacity, replacement_policy=replacement_policy, update_time=date)
+            return render_template('memcache_manager.html', capacity=capacity, replacement_policy=replacement_policy, update_time=date, status="TRUE")
+    return render_template('memcache_manager.html', capacity=capacity, replacement_policy=replacement_policy, update_time=date)
 
 
 def set_cache_params(new_cap, new_policy):

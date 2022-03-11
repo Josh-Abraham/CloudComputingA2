@@ -8,9 +8,10 @@ h3 {
   margin-top: 8px;
 }
 
+
 .top_bar {
   line-height: 50px;
-  background-color: #31647a;
+  background-color: rgb(17, 79, 130);
   margin: -8px -8px 0px -8px;
 }
 
@@ -23,7 +24,7 @@ h3 {
 }
 
 .top_bar a:hover {
-  background-color: #40acbd;
+  background-color: rgb(28, 130, 214);
 }
 
 
@@ -49,6 +50,10 @@ h3 {
     width: 0px;
 }
 
+.form-row {
+  display: flex;
+  flex-direction: row;
+}
 .select_button {
   background-color: #fff;
   border: 1px solid #d5d9d9;
@@ -90,13 +95,6 @@ h3 {
 
 .label-padding {
   line-height: 30px;
-}
-
-.cache-form {
-  position: absolute;
-  top: 90px;
-  left: 500px;
-  width: 145px;
 }
 
 .plot {
