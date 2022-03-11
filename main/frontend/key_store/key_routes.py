@@ -1,12 +1,9 @@
-from flask import render_template, request, send_file, redirect, url_for, g, jsonify
-from flask import Blueprint
-from frontend.image_utils.db_connection import get_db
-from frontend.image_utils.image_utils import save_image, write_image_base64,save_image_automated
-import requests, time, datetime
-import frontend.image_utils.config as conf
-import json
+from flask import Blueprint, jsonify, render_template, request, send_file
+from frontend.db_connection import get_db
+from frontend.key_store.image_utils import *
+import requests
 
-routes = Blueprint("routes", __name__)
+image_routes = Blueprint("image_routes", __name__)
 
 # Memcache host port
 cache_host = "http://localhost:5001"
@@ -18,20 +15,8 @@ cache_config = {
 }
 
 
-@routes.errorhandler(404)
-def not_found(e):
-    """ Error template goes back to home
-    """
-    return render_template("home.html")
 
-@routes.route('/')
-@routes.route('/home')
-def home():
-    """ Main route, as well as default location for 404s
-    """
-    return render_template("home.html")
-
-@routes.route('/add_key', methods = ['GET','POST'])
+@image_routes.route('/add_key', methods = ['GET','POST'])
 def add_key():
     """Add an image
     GET: Simply render the add_key page
@@ -43,7 +28,7 @@ def add_key():
         return render_template("add_key.html", save_status=status)
     return render_template("add_key.html")
 
-@routes.route('/show_image', methods = ['GET','POST'])
+@image_routes.route('/show_image', methods = ['GET','POST'])
 def show_image():
     """ Endpoint to show the image
     GET: Simply render the show_image page
@@ -82,7 +67,7 @@ def show_image():
     return render_template('show_image.html')
 
 
-@routes.route("/get_image/<filename>")
+@image_routes.route("/get_image/<filename>")
 def get_image(filename):
     """ This endpoint just returns the image
     The key is the filename with extension
@@ -90,7 +75,7 @@ def get_image(filename):
     filepath = "static/images/" + filename
     return send_file(filepath)
 
-@routes.route('/key_store')
+@image_routes.route('/key_store')
 def key_store():
     """ Get list of all keys currently in the database
     """
@@ -139,7 +124,7 @@ def key_store():
 
 
 # Test functionality
-@routes.route('/api/list_keys', methods = ['POST'])
+@image_routes.route('/api/list_keys', methods = ['POST'])
 def list_keys():
     """
     Automatic test endpoint to list all keys currently in the database
@@ -164,7 +149,7 @@ def list_keys():
         error_message={"success":"false" , "error":{"code":"500 Internal Server Error", "message":"Something Went Wrong"}}
         return(jsonify(error_message))
 
-@routes.route('/api/key/<string:key_value>', methods = ['POST'])
+@image_routes.route('/api/key/<string:key_value>', methods = ['POST'])
 def one_key(key_value):
     """
     Automatic test endpoint to retrieve the image associated with the given key
@@ -211,7 +196,7 @@ def one_key(key_value):
         return(jsonify(error_message))
 
 
-@routes.route('/api/upload', methods = ['POST'])
+@image_routes.route('/api/upload', methods = ['POST'])
 def upload():
     """
     Automatic test endpoint to upload the given key image pair in the Database
