@@ -1,8 +1,23 @@
 from app import UPLOAD_FOLDER
 import os, requests, base64
 from app.db_connection import get_db
+from main.backend import s3_storage
+import tempfile
+import boto3
+from botocore.config import Config
 
 ALLOWED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif'}
+
+my_config = Config(
+    region_name = 'us-east-1',
+    #signature_version = 'v4',
+    retries = {
+        'max_attempts': 10,
+        'mode': 'standard'
+    }
+)
+
+s3 =boto3.client('s3',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
 
 def save_image(request, key):
     """ check if the file or url in request is an image and save into local storage,
@@ -42,6 +57,49 @@ def save_image(request, key):
         return "INVALID"
     except:
         return "INVALID"
+
+def upload_image(request,key):
+    img_url = request.form.get('img_url')
+    if img_url == "":
+        file = request.files['file']
+        _, extension = os.path.splitext(file.filename)
+        if extension.lower() in ALLOWED_EXTENSIONS:
+            print("trying")
+            base64_image = base64.b64encode(file.read())
+            s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
+            print("u0loaded")
+            jsonReq = {"key":key}
+            res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            return "SAVED"
+        return "INVALID"
+
+    response = requests.get(img_url)
+    if response.status_code == 200:
+        _, extension = os.path.splitext(img_url)
+        if extension.lower() in ALLOWED_EXTENSIONS:
+            filename = key + extension
+            with open(UPLOAD_FOLDER + "/" + filename, 'r+b') as f:
+               f.write(response.content)
+               f.seek(0)
+               base64_image = base64.b64encode(f.read())
+            f.close()
+            print(response.content)
+            print(base64_image)
+            os.remove(UPLOAD_FOLDER + "/" + filename)
+            s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
+            jsonReq = {"key":key}
+            res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            return "SAVED"
+    return "INVALID"
+
+def download_image(key):
+    with open('Temp.txt', 'wb') as file:
+        s3.download_fileobj('image-bucket-a2', key, file)
+    with open('Temp.txt', 'rb') as file:
+        base64_image = file.read().decode('utf-8')
+    file.close()
+    print("downloaded")
+    return base64_image
 
 def write_image_base64(filename):
     """ Write image out in base64

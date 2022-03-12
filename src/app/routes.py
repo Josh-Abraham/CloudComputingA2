@@ -1,7 +1,7 @@
 from flask import render_template, request, send_file, redirect, url_for, g, jsonify
 from app import webapp
 from app.db_connection import get_db
-from app.image_utils import save_image, write_image_base64,save_image_automated
+from app.image_utils import save_image,upload_image,download_image, write_image_base64,save_image_automated
 import requests, time, datetime
 from app.cache_utils import *
 from app.plot_utils import *
@@ -46,9 +46,18 @@ def add_key():
     """
     if request.method == 'POST':
         key = request.form.get('key')
-        status = save_image(request, key)
+        status = upload_image(request, key)
         return render_template("add_key.html", save_status=status)
     return render_template("add_key.html")
+
+@webapp.route('/show_image2', methods = ['GET','POST']) #temporary test method
+def show_image2():
+    if request.method == 'POST':
+        key = request.form.get('key')
+        image=download_image(key)
+        return render_template('show_image.html', exists=True, filename=image)
+
+    return render_template('show_image.html')
 
 @webapp.route('/show_image', methods = ['GET','POST'])
 def show_image():
@@ -134,14 +143,14 @@ def cache_stats():
     cursor.execute(query, (start_time, stop_time))
     rows = cursor.fetchall()
     cnx.close()
-    
+
     (x_data, y_data) = prepare_data(rows)
     image_map = {}
     for k,v in y_data.items():
         image_map[k] = plot_graphs(x_data['x-axis'], v, k)
 
-    return render_template('cache_stats.html', cache_count_plot = image_map['cache_count'], 
-                            request_plot = image_map['request_count'], cache_size_plot = image_map['cache_size'], 
+    return render_template('cache_stats.html', cache_count_plot = image_map['cache_count'],
+                            request_plot = image_map['request_count'], cache_size_plot = image_map['cache_size'],
                              hit_plot = image_map['hit'], miss_plot = image_map['miss'])
 
 @webapp.route('/memcache_params', methods = ['GET','POST'])
