@@ -120,6 +120,7 @@
         <script type="text/javascript">
             // Initialize the echarts instance based on the prepared dom
             var myChart = echarts.init(document.getElementById('memcachePool'));
+            var memcache_pool = JSON.parse('{{ memcache_pool | tojson | safe}}')
       
             // Specify the configuration items and data for the chart
             var option = {
@@ -145,16 +146,7 @@
                     labelLine: {
                         show: false
                     },
-                    data: [
-                        { value: 1, name: 'Node 1' },
-                        { value: 1, name: 'Node 2' },
-                        { value: 1, name: 'Node 3' },
-                        { value: 1, name: 'Node 4' },
-                        { value: 1, name: 'Node 5' },
-                        { value: 1, name: 'Node 6' },
-                        { value: 1, name: 'Node 7' },
-                        { value: 1, name: 'Node 8' }
-                    ]
+                    data: memcache_pool
                     }
                 ]};
       
