@@ -11,64 +11,100 @@ backend_app = 'http://localhost:5001'
 
 @cache_routes.route('/memcache_manager', methods=['GET'])
 def memcache_manager():
-    capacity, replacement_policy, update_time, memcache_pool = format_cache_settings()
+    capacity, replacement_policy, update_time, memcache_pool, active_nodes, pool_params = format_cache_settings()
     return render_template('memcache_manager.html',
         capacity=capacity,
         replacement_policy=replacement_policy,
         update_time=update_time,
-        memcache_pool=memcache_pool)
+        memcache_pool=memcache_pool,
+        pool_params=pool_params,
+        active_nodes=active_nodes)
 
 
 @cache_routes.route('/set_cache_params', methods = ['GET', 'POST'])
 def memcache_params():
     global backend_app
-    new_cap = request.form.get('capacity')
-    if (not type(new_cap) == NoneType) and  new_cap.isdigit() and int(new_cap) <= 500:
-        new_policy = request.form.get('replacement_policy')
-        new_time = time.time()
-        req = {
-            'max_capacity': new_cap, 
-            'replacement_policy': new_policy, 
-            'update_time': new_time
-        }
-        resp = requests.post(backend_app + '/refreshConfiguration', json=req)
-        capacity, replacement_policy, update_time, memcache_pool = format_cache_settings()
-        if resp.json() == 'OK':
-            return render_template('memcache_manager.html',
-            capacity=capacity,
-            replacement_policy=replacement_policy,
-            update_time=update_time,
-            memcache_pool=memcache_pool)
+    if request.method == 'POST':
+        new_cap = request.form.get('capacity')
+        if (not type(new_cap) == NoneType) and  new_cap.isdigit() and int(new_cap) <= 500:
+            new_policy = request.form.get('replacement_policy')
+            new_time = time.time()
+            req = {
+                'max_capacity': new_cap, 
+                'replacement_policy': new_policy, 
+                'update_time': new_time
+            }
+            resp = requests.post(backend_app + '/refreshConfiguration', json=req)
+            capacity, replacement_policy, update_time, memcache_pool, active_nodes, pool_params = format_cache_settings()
+            if resp.json() == 'OK':
+                return render_template('memcache_manager.html',
+                capacity=capacity,
+                replacement_policy=replacement_policy,
+                update_time=update_time,
+                memcache_pool=memcache_pool,
+                pool_params=pool_params,
+                active_nodes=active_nodes)
+
     # On error, reset to old params
-    capacity, replacement_policy, update_time, memcache_pool = format_cache_settings()
+    capacity, replacement_policy, update_time, memcache_pool, active_nodes, pool_params = format_cache_settings()
     return render_template('memcache_manager.html',
             capacity=capacity,
             replacement_policy=replacement_policy,
             update_time=update_time,
             memcache_pool=memcache_pool,
+            pool_params=pool_params,
+            active_nodes=active_nodes,
             status="TRUE")
 
 @cache_routes.route('/clear_cache', methods=['GET', 'POST'])
 def clear_cache():
     global backend_app
-    res = requests.get(backend_app + '/clear_cache_pool')
-    capacity, replacement_policy, update_time, memcache_pool = format_cache_settings()
+    if request.method == 'POST':
+        res = requests.get(backend_app + '/clear_cache_pool')
+    capacity, replacement_policy, update_time, memcache_pool, active_nodes, pool_params = format_cache_settings()
     return render_template('memcache_manager.html',
         capacity=capacity,
         replacement_policy=replacement_policy,
         update_time=update_time,
-        memcache_pool=memcache_pool)
+        memcache_pool=memcache_pool,
+        pool_params=pool_params,
+        active_nodes=active_nodes)
 
 @cache_routes.route('/clear_data', methods=['GET', 'POST'])
 def clear_data():
     global backend_app
-    res = requests.get(backend_app + '/clear_data')
-    capacity, replacement_policy, update_time, memcache_pool = format_cache_settings()
+    if request.method == 'POST':
+        res = requests.get(backend_app + '/clear_data')
+    capacity, replacement_policy, update_time, memcache_pool, active_nodes, pool_params = format_cache_settings()
     return render_template('memcache_manager.html',
         capacity=capacity,
         replacement_policy=replacement_policy,
         update_time=update_time,
-        memcache_pool=memcache_pool)
+        memcache_pool=memcache_pool,
+        pool_params=pool_params,
+        active_nodes=active_nodes)
+
+
+@cache_routes.route('/set_pool_config', methods=['GET', 'POST'])
+def set_pool_config():
+    global backend_app
+    if request.method == 'POST':
+        if request.form.get("mode") == 'Manual Mode':
+            manual_update_pool(request.form.get("pool-button"))
+            
+        else:
+            print(request.form.get("mode"))
+        
+        
+    capacity, replacement_policy, update_time, memcache_pool, active_nodes, pool_params = format_cache_settings()
+    return render_template('memcache_manager.html',
+        capacity=capacity,
+        replacement_policy=replacement_policy,
+        update_time=update_time,
+        memcache_pool=memcache_pool,
+        pool_params=pool_params,
+        active_nodes=active_nodes)
+
 
 def format_cache_settings():
     global backend_app
@@ -77,13 +113,31 @@ def format_cache_settings():
     capacity = res.json()['cache_params']['max_capacity']
     replacement_policy = res.json()['cache_params']['replacement_policy']
     update_time = time.ctime(res.json()['cache_params']['update_time'])
+    pool_params = res.json()['pool_params']
 
     i = 1
+    active_nodes = 0
     pool_data = []
     for id, ip_address in memcache_pool.items():
         if not ip_address == None:
-            pool_data.append(
-                { 'value': i, 'name': 'Node ' + str(i) }
-            )
+            if ip_address == 'Starting' or ip_address == 'Stopping':
+                pool_data.append(
+                    { 'value': 1, 'name': 'Node ' + str(i) + ' ' + ip_address }
+                )
+            else:
+                pool_data.append(
+                    { 'value': 1, 'name': 'Node ' + str(i) }
+                )
             i += 1
-    return capacity, replacement_policy, update_time, pool_data
+            
+            if not ip_address == 'Stopping':
+                active_nodes += 1
+            
+    return capacity, replacement_policy, update_time, pool_data, active_nodes, pool_params
+
+
+def manual_update_pool(cmd):
+    if cmd == 'increase':
+        resp = requests.post(backend_app + '/startInstance')
+    else:
+        resp = requests.post(backend_app + '/stopInstance')

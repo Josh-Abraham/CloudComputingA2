@@ -102,16 +102,93 @@
                 class="form-outline"
                 style="height: 470px; width: 600px"
                 method="post"
-                action="/set_pool_size"
+                action="/set_pool_config"
                 >
-                    <div id="memcachePool" style="width: 600px;height:400px;"></div>
+                    <h3>Pool Configuration</h3>
 
-                    <input
-                        type="submit"
-                        id="set_pool_size"
-                        class="submit-button"
-                        style="width: 150px;"
-                        value="Update Pool">
+                    <div class="form-row">
+                        <div>
+                            <h4>Select Memcache Pool Resizing</h4>
+                            <div>
+                                <input type="radio" id="manual" name="mode" value="Manual Mode" checked onclick="showManual()">
+                                <label for="manual">Manual Mode</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="automtic" name="mode" value="Automatic Mode" onclick="showAuto()">
+                                <label for="automtic">Automatic Mode</label>
+                            </div>
+                            {% set item_count = memcache_pool|length %} 
+                            <div id="manual_pool" style="display: block;">
+                                <h4>Adjust Pool Size</h4>
+                                <div class="form-row">
+                                    <button
+                                        id="increase_button"
+                                        class="submit-button"
+                                        style="margin: 3px"
+                                        type="submit"
+                                        name="pool-button"
+                                        value="increase"
+                                        {% if item_count == 8 %} disabled {% endif %}
+                                        >+1</button>
+                                    <button
+                                        id="decrease_button"
+                                        class="submit-button"
+                                        style="margin: 3px"
+                                        type="submit"
+                                        name="pool-button"
+                                        value="decrease"
+                                        {% if active_nodes == 0 %} disabled {% endif %}
+                                        >-1</button>
+                                </div>
+                            </div>
+
+                            <div id="auto_pool" style="display: none; width:220px">
+                                <h4>Set Policy</h4>
+                                <div class="form-row">
+                                    <div class="form-col">
+                                        <label for="maxMiss">Max Miss Rate: </label>
+                                        <label for="mixMiss">Min Miss Rate: </label>
+                                        <label for="expRatio">Expansion Ratio: </label>
+                                        <label for="shrinkRatio">Shrink Ratio: </label>
+                                    </div>
+                                    <div class="form-col">
+                                        <input 
+                                            type="text"
+                                            id="maxMiss"
+                                            name="maxMiss"
+                                            value="{{ maxMiss }}"
+                                            class="type-select-mini">
+                                        <input 
+                                            type="text"
+                                            id="mixMiss"
+                                            name="mixMiss"
+                                            value="{{ minMiss }}"
+                                            class="type-select-mini">
+                                        <input 
+                                            type="text"
+                                            id="expRatio"
+                                            name="expRatio"
+                                            value="{{ expansionRatio }}"
+                                            class="type-select-mini">
+                                        <input 
+                                            type="text"
+                                            id="shrinkRatio"
+                                            name="shrinkRatio"
+                                            value="{{ shrinkRatio }}"
+                                            class="type-select-mini">
+                                    </div>
+                                </div>
+                                <input
+                                    type="submit"
+                                    id="set_pool_size"
+                                    class="submit-button"
+                                    style="width: 150px;"
+                                    value="Update Pool">
+                            </div>
+                        </div>
+                        <div>
+                            <div id="memcachePool" style="width: 350px;height:350px;"></div>
+                        </div>
                 </form>
             </div>
         
@@ -152,6 +229,16 @@
       
             // Display the chart using the configuration items and data just specified.
             myChart.setOption(option);
+
+            function showManual() {
+                document.getElementById("manual_pool").style.display="block";
+                document.getElementById("auto_pool").style.display="none";
+            }
+
+            function showAuto() {
+                document.getElementById("manual_pool").style.display="none";
+                document.getElementById("auto_pool").style.display="block";
+            }
           </script>
     <body>    
 </html>

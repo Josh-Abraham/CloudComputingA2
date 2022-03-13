@@ -45,6 +45,16 @@ h3 {
   box-sizing: border-box;
 }
 
+.type-select-mini {
+  width: 100px;
+  line-height: 25px;
+  margin-left: 5px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
 .hidden {
     visibility: hidden;
     width: 0px;
@@ -54,6 +64,14 @@ h3 {
   display: flex;
   flex-direction: row;
 }
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+  height: 150px;
+  justify-content: space-between;
+}
+
 .select_button {
   background-color: #fff;
   border: 1px solid #d5d9d9;
@@ -84,7 +102,7 @@ h3 {
 }
 
 .submit-button:hover {
-  background-color: #47bfd1;
+  background-color: rgb(28, 130, 214);
 }
 
 
