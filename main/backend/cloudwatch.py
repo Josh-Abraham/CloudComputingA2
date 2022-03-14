@@ -324,8 +324,8 @@ if __name__ == '__main__':
         )
         print(response)'''
 
-    retention_period_in_days = 30
-    log_group = 'test2logs'
+    '''retention_period_in_days = 30
+    
 # Back end Log Group
 
 
@@ -344,15 +344,16 @@ if __name__ == '__main__':
     response = cloudlogs.put_retention_policy(
         logGroupName=log_group,
         retentionInDays=retention_period_in_days
-    )
+    )'''
+    '''log_group = 'test2logs'
     response = cloudlogs.create_log_stream(
         logGroupName=log_group,
-        logStreamName='test2Logs'
+        logStreamName='testLogs'
     )
     for i in range(10):
         log_event = {
             'logGroupName': log_group,
-            'logStreamName': 'test2logs',
+            'logStreamName': 'testlogs',
             'logEvents': [
                 {
                     'timestamp': int(round(time.time() * 1000)),
@@ -362,4 +363,103 @@ if __name__ == '__main__':
         }
         response = cloudlogs.put_log_events(**log_event)
         time.sleep(1)
-    print("Logs generated successfully")
+    print("Logs generated successfully")'''
+
+    response = client.put_metric_data(
+        Namespace='string',
+        MetricData=[
+            {
+                'MetricName': 'string',
+                'Dimensions': [
+                    {
+                        'Name': 'string',
+                        'Value': 'string'
+                    },
+                ],
+                'Timestamp': datetime(2015, 1, 1),
+                'Value': 123.0,
+                'StatisticValues': {
+                    'SampleCount': 123.0,
+                    'Sum': 123.0,
+                    'Minimum': 123.0,
+                    'Maximum': 123.0
+                },
+                'Values': [
+                    123.0,
+                ],
+                'Counts': [
+                    123.0,
+                ],
+                'Unit': 'Seconds'|'Microseconds'|'Milliseconds'|'Bytes'|'Kilobytes'|'Megabytes'|'Gigabytes'|'Terabytes'|'Bits'|'Kilobits'|'Megabits'|'Gigabits'|'Terabits'|'Percent'|'Count'|'Bytes/Second'|'Kilobytes/Second'|'Megabytes/Second'|'Gigabytes/Second'|'Terabytes/Second'|'Bits/Second'|'Kilobits/Second'|'Megabits/Second'|'Gigabits/Second'|'Terabits/Second'|'Count/Second'|'None',
+                'StorageResolution': 123
+            },
+        ]
+    )
+
+    response = cloudwatch.put_metric_data(
+        Namespace='Try Metric',
+        MetricData=[
+            {
+                'MetricName': 'Random Info',
+                'Dimensions': [
+                    {
+                        'Name': 'numbers',
+                        'Value': 'count'
+                    },
+                ],
+                'Timestamp': datetime.utcnow(),
+                'Values': [random.randint(10, 100),],
+                'Unit': 'Count',
+                'StorageResolution':1
+            },
+            {
+                'MetricName': 'Random Info',
+                'Dimensions': [
+                    {
+                        'Name': 'numbers',
+                        'Value': 'count'
+                    },
+                ],
+                'Timestamp': datetime.utcnow(),
+                'Values': [random.randint(10, 100),],
+                'Unit': 'Count',
+                'StorageResolution':1
+            }
+        ]
+    )
+    print(response)
+
+
+    response = cloudwatch.get_metric_data(
+        MetricDataQueries=[
+            {
+                'Id': 'first_try',
+                'MetricStat':{
+                    'Metric': {
+                        'Namespace': 'Try Metric',
+                        'MetricName': 'Random Info',
+                        'Dimensions': [
+                            {
+                                'Name': 'numbers',
+                                'Value': 'count'
+                            },
+                        ]
+                    },
+                    'Period': 30,
+                    'Stat': 'Average',
+                    'Unit': 'Count',
+                },
+                'Label': 'this is label',
+                'ReturnData': True,
+            },
+        ],
+        StartTime=datetime.utcnow()-timedelta(days=1),
+        EndTime=datetime.utcnow(),
+        #NextToken='string',
+        ScanBy='TimestampDescending',
+        #MaxDatapoints=2,
+        LabelOptions={
+            'Timezone': '+0000'
+        }
+    )
+    print(response)
