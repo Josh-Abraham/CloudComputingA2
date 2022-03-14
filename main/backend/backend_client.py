@@ -20,11 +20,14 @@ pool_params = {
 }
 
 @webapp.before_first_request
-def set_cache_settings():
-    """ Set Cache Parameters
+def setup_pool():
+    """ Set Pool configuration
     """
+    startup_count = ec2_lifecycle.set_pool_status()
+    if startup_count == 0:
+        start_instance()
+    
     #TODO: on startup of BE, set cache params of all active nodes
-    #TODO: Also set active EC2 instance list
 
 
 @webapp.route('/', methods = ['GET'])

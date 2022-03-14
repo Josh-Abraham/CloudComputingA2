@@ -62,3 +62,31 @@ def threadInstanceCheck(instance_id):
         except ClientError as e:
             print(e)
     memcache_pool[instance_id] = None
+
+def set_pool_status():
+    global memcache_pool
+    print('Checking all Nodes')
+    instances = list(memcache_pool.keys())
+    try:
+        ec2.describe_instances(InstanceIds=instances, DryRun=True)
+        print('Instance Status')
+    except ClientError as e:
+        if 'DryRunOperation' not in str(e):
+            raise
+
+    # Dry run succeeded, call describe_instance_status without dryrun
+    startCount = 0
+    try:
+        response = ec2.describe_instances(InstanceIds=instances, DryRun=False)
+        for instance in response['Reservations'][0]['Instances']:
+            print(instance['InstanceId'])
+            if (instance['State']['Name'] == 'running'):
+                memcache_pool[instance['InstanceId']] = instance['PublicIpAddress']
+                startCount += 1
+            else:
+                memcache_pool[instance['InstanceId']] = None
+        return startCount
+    except ClientError as e:
+        print(e)
+    
+
