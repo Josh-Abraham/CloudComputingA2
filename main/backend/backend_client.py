@@ -1,8 +1,8 @@
 from multiprocessing import pool
-from backend import webapp
+from backend import webapp, memcache_pool
 from flask import request
-# from backend import ec2_lifecycle
-import json, time
+from backend import ec2_lifecycle
+import json, time, threading
 
 cache_params = {
     'max_capacity': 2,
@@ -10,16 +10,7 @@ cache_params = {
     'update_time': time.time()
 }
 
-memcache_pool = {
-    "i-04064013ac1862adf": None,
-    "2": None,
-    "3": None,
-    "4": None,
-    "5": None,
-    "6": None,
-    "7": None,
-    "8": None
-}
+
 
 pool_params = {
     'mode': 'manual',
@@ -61,7 +52,7 @@ def start_instance():
     if not id == None:
         print('Starting up ' + id)
         memcache_pool[id] = 'Starting'
-        # ec2_lifecycle.startup(id)
+        ec2_lifecycle.startup(id)
     
     return get_response(True)
 
@@ -75,7 +66,7 @@ def stop_instance():
     if not id == None:
         print('Shutting down ' + id)
         memcache_pool[id] = 'Stopping'
-        # ec2_lifecycle.shutdown(id)
+        ec2_lifecycle.shutdown(id)
     return get_response(True)
 
 @webapp.route('/getCacheInfo', methods = ['GET'])

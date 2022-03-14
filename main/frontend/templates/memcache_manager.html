@@ -137,7 +137,7 @@
                                         type="submit"
                                         name="pool-button"
                                         value="decrease"
-                                        {% if active_nodes == 0 %} disabled {% endif %}
+                                        {% if node_data["active"] + node_data["starting"] == 0 %} disabled {% endif %}
                                         >-1</button>
                                 </div>
                             </div>
@@ -183,11 +183,15 @@
                                     id="set_pool_size"
                                     class="submit-button"
                                     style="width: 150px;"
-                                    value="Update Pool">
+                                    value="Set Configuration">
                             </div>
                         </div>
-                        <div>
-                            <div id="memcachePool" style="width: 350px;height:350px;"></div>
+                        <div style="margin-left: 20px">
+                            <h4>Memcache Pool Node Status</h4>
+                            Number of Active Nodes: <b>{{ node_data["active"] }}</b><br/>
+                            Number of Nodes Starting: <b>{{ node_data["starting"] }} </b><br/>
+                            Number of Nodes Shutting Down: <b>{{ node_data["stopping"] }} </b><br/>
+                            <div id="memcachePool" style="width: 300px;height:350px;"></div>
                         </div>
                 </form>
             </div>
