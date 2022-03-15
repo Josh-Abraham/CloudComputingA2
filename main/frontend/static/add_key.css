@@ -1,0 +1,78 @@
+* {
+    font-family: "Amazon Ember",sans-serif;
+    font-size: 14px;
+  }
+  
+  h3 {
+    font-size: 16px;
+    margin-top: 8px;
+  }
+  
+  a {
+    color: #fff;
+    text-align: center;
+    padding: 8px;
+    text-decoration: none;
+    font-size: 16px;
+  }
+  
+  a:hover {
+    background-color: #40acbd;
+  }
+  
+  
+  .form-outline {
+    border-radius: 5px;
+    width: 480px;
+    background-color: #f2f2f2;
+    padding: 20px;
+  }
+  
+  .type-select {
+    width: 350px;
+    padding: 8px 10px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+  
+  .hidden {
+      visibility: hidden;
+      width: 0px;
+  }
+  
+  .select_button {
+    background-color: #fff;
+    border: 1px solid #d5d9d9;
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: #0f1111;
+    cursor: pointer;
+    display: inline-block;
+    line-height: 32px;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    width: 120px;
+  }
+  
+  .select_button:hover {
+    background-color: #47bfd1;
+  }
+  
+  .submit-button {
+    width: 100%;
+    margin: 15px 0 0 0;
+    height: 32px;
+    border-radius: 5px;
+    border: 1px solid #d5d9d9;
+    background-color: #fff;
+  }
+  
+  .submit-button:hover {
+    background-color: #47bfd1;
+  }
+  
