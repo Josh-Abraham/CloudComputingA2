@@ -58,7 +58,7 @@ def memcache_params():
 def clear_cache():
     global backend_app
     if request.method == 'POST':
-        res = requests.get(backend_app + '/clear_cache_pool')
+        res = requests.post(backend_app + '/clear_cache_pool')
     capacity, replacement_policy, update_time, memcache_pool, node_data, pool_params = format_cache_settings()
     return render_template('memcache_manager.html',
         capacity=capacity,

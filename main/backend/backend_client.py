@@ -2,15 +2,15 @@ from multiprocessing import pool
 from backend import webapp, memcache_pool
 from flask import request
 from backend import ec2_lifecycle
-import json, time, threading
+import json, time, requests
+
+STATES = ['Starting', 'Stopping']
 
 cache_params = {
     'max_capacity': 2,
     'replacement_policy': 'Least Recently Used',
     'update_time': time.time()
 }
-
-
 
 pool_params = {
     'mode': 'manual',
@@ -26,8 +26,6 @@ def setup_pool():
     startup_count = ec2_lifecycle.set_pool_status()
     if startup_count == 0:
         start_instance()
-    
-    #TODO: on startup of BE, set cache params of all active nodes
 
 
 @webapp.route('/', methods = ['GET'])
@@ -42,14 +40,13 @@ def ready_request():
     global memcache_pool
     req_json = request.get_json(force=True)
     memcache_pool[req_json['instance_id']] = req_json['ip_address']
-    print('New Host address')
-    print(memcache_pool[req_json['instance_id']])
-    return get_response(True)
+    print('New Host address:' + memcache_pool[req_json['instance_id']])
+
+    return get_cache_response()
 
 @webapp.route('/startInstance', methods = ['POST', 'GET'])
 def start_instance():
     """ Code to start an EC2 instance
-    TODO: Remve hard coded instance for next available
     """
     id = get_next_node()
     if not id == None:
@@ -62,7 +59,6 @@ def start_instance():
 @webapp.route('/stopInstance', methods = ['POST', 'GET'])
 def stop_instance():
     """ Code to stop an EC2 instance
-    TODO: Remve hard coded instance for next available
     """
     global memcache_pool
     id = get_active_node()
@@ -93,14 +89,18 @@ def get_cache_info():
 
 @webapp.route('/refreshConfiguration', methods = ['POST'])
 def refresh_configuration():
-    global cache_params
+    global cache_params, memcache_pool
     """ Set cache params
     """
     cache_params = request.get_json(force=True)
     print(cache_params)
-    # TODO: Need to call refresh config on cache pool
-    # For startup issue we need to do a get req to this backend port on flask startup for new configs
-    
+    for host in memcache_pool:
+        address_ip = memcache_pool[host]
+        if not address_ip == None and not address_ip in STATES: 
+            # If an address is starting up, it will be set once it is ready
+            address = 'http://' + str(address_ip) + ':5000/refreshConfiguration'
+            res = requests.post(address, json=cache_params)
+
     return webapp.response_class(
             response = json.dumps("OK"),
             status=200,
@@ -109,7 +109,16 @@ def refresh_configuration():
 
 @webapp.route('/clear_cache_pool', methods = ['POST'])
 def clear_cache_pool():
-    # TODO: Call clear on cache pool
+    """ Clear cache content
+    """
+    for host in memcache_pool:
+        address_ip = memcache_pool[host]
+        print('IP ' + address_ip)
+        if not address_ip == None and not address_ip in STATES:
+            # Only need to clear active ports
+            address = 'http://' + str(address_ip) + ':5000/clear'
+            res = requests.post(address)
+
     return webapp.response_class(
             response = json.dumps("OK"),
             status=200,
@@ -158,4 +167,13 @@ def get_response(input=False):
             mimetype='application/json'
         )
 
+    return response
+
+def get_cache_response():
+    response = webapp.response_class(
+        response=json.dumps(cache_params),
+        status=200,
+        mimetype='application/json'
+    )
+    
     return response
