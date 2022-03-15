@@ -3,7 +3,7 @@ from botocore.exceptions import ClientError
 from botocore.config import Config
 import logging
 import os,base64
-from app import UPLOAD_FOLDER
+from main.frontend.config import UPLOAD_FOLDER
 
 my_config = Config(
     region_name = 'us-east-1',

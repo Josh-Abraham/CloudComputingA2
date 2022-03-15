@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
-from frontend.db_connection import get_db
+from main.frontend.db_connection import get_db
 import datetime
-from frontend.statistics.plot_utils import *
+from main.frontend.statistics.plot_utils import *
 
 stats_routes = Blueprint("stats_routes", __name__)
 
@@ -20,14 +20,14 @@ def cache_stats():
     cursor.execute(query, (start_time, stop_time))
     rows = cursor.fetchall()
     cnx.close()
-    
+
     (x_data, y_data) = prepare_data(rows)
     image_map = {}
     for k,v in y_data.items():
         image_map[k] = plot_graphs(x_data['x-axis'], v, k)
 
-    return render_template('cache_stats.html', cache_count_plot = image_map['cache_count'], 
-                            request_plot = image_map['request_count'], cache_size_plot = image_map['cache_size'], 
+    return render_template('cache_stats.html', cache_count_plot = image_map['cache_count'],
+                            request_plot = image_map['request_count'], cache_size_plot = image_map['cache_size'],
                              hit_plot = image_map['hit'], miss_plot = image_map['miss'])
 
 @stats_routes.route('/new_stats')

@@ -1,8 +1,18 @@
 import sys
 import boto3
 from botocore.exceptions import ClientError
+from botocore.config import Config
 
-ec2 = boto3.client('ec2')
+my_config = Config(
+    region_name = 'us-east-1',
+    #signature_version = 'v4',
+    retries = {
+        'max_attempts': 10,
+        'mode': 'standard'
+    }
+)
+
+ec2 = boto3.client('ec2',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
 
 def startup(instance_id):
     print('Starting instance ' + instance_id)

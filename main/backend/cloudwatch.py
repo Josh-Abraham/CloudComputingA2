@@ -1,3 +1,5 @@
+import copy
+
 import boto3
 from botocore.exceptions import ClientError
 from botocore.config import Config
@@ -364,102 +366,162 @@ if __name__ == '__main__':
         response = cloudlogs.put_log_events(**log_event)
         time.sleep(1)
     print("Logs generated successfully")'''
-
-    response = client.put_metric_data(
-        Namespace='string',
-        MetricData=[
-            {
-                'MetricName': 'string',
-                'Dimensions': [
+    time= datetime.utcnow()
+    time_s=copy.deepcopy(time)
+    while True:
+        if(datetime.utcnow()>=time+timedelta(seconds=5)):
+            response = cloudwatch.put_metric_data(
+                Namespace='Try Metric',
+                MetricData=[
                     {
-                        'Name': 'string',
-                        'Value': 'string'
+                        'MetricName': 'metric_1',
+                        'Dimensions': [
+                            {
+                                'Name': 'metric',
+                                'Value': 'count'
+                            },
+                        ],
+                        'Timestamp': datetime.utcnow(),
+                        'Value': 55,
+                        'StorageResolution': 1
                     },
-                ],
-                'Timestamp': datetime(2015, 1, 1),
-                'Value': 123.0,
-                'StatisticValues': {
-                    'SampleCount': 123.0,
-                    'Sum': 123.0,
-                    'Minimum': 123.0,
-                    'Maximum': 123.0
-                },
-                'Values': [
-                    123.0,
-                ],
-                'Counts': [
-                    123.0,
-                ],
-                'Unit': 'Seconds'|'Microseconds'|'Milliseconds'|'Bytes'|'Kilobytes'|'Megabytes'|'Gigabytes'|'Terabytes'|'Bits'|'Kilobits'|'Megabits'|'Gigabits'|'Terabits'|'Percent'|'Count'|'Bytes/Second'|'Kilobytes/Second'|'Megabytes/Second'|'Gigabytes/Second'|'Terabytes/Second'|'Bits/Second'|'Kilobits/Second'|'Megabits/Second'|'Gigabits/Second'|'Terabits/Second'|'Count/Second'|'None',
-                'StorageResolution': 123
-            },
-        ]
-    )
-
-    response = cloudwatch.put_metric_data(
-        Namespace='Try Metric',
-        MetricData=[
-            {
-                'MetricName': 'Random Info',
-                'Dimensions': [
                     {
-                        'Name': 'numbers',
-                        'Value': 'count'
+                        'MetricName': 'metric_2',
+                        'Dimensions': [
+                            {
+                                'Name': 'metric',
+                                'Value': 'counts'
+                            },
+                        ],
+                        'Timestamp': datetime.utcnow(),
+                        'Value': 65,
+                        'StorageResolution': 1
                     },
-                ],
-                'Timestamp': datetime.utcnow(),
-                'Values': [random.randint(10, 100),],
-                'Unit': 'Count',
-                'StorageResolution':1
-            },
-            {
-                'MetricName': 'Random Info',
-                'Dimensions': [
                     {
-                        'Name': 'numbers',
-                        'Value': 'count'
-                    },
-                ],
-                'Timestamp': datetime.utcnow(),
-                'Values': [random.randint(10, 100),],
-                'Unit': 'Count',
-                'StorageResolution':1
-            }
-        ]
-    )
-    print(response)
+                        'MetricName': 'metric_3',
+                        'Dimensions': [
+                            {
+                                'Name': 'metric',
+                                'Value': 'count'
+                            },
+                        ],
+                        'Timestamp': datetime.utcnow(),
+                        'Value': 75,
+                        'StorageResolution': 1
+                    }
+                ]
+            )
+            time=datetime.utcnow()
 
-
-    response = cloudwatch.get_metric_data(
-        MetricDataQueries=[
-            {
-                'Id': 'first_try',
-                'MetricStat':{
-                    'Metric': {
-                        'Namespace': 'Try Metric',
+            '''response = cloudwatch.put_metric_data(
+                Namespace='Try Metric',
+                MetricData=[
+                    {
                         'MetricName': 'Random Info',
                         'Dimensions': [
                             {
                                 'Name': 'numbers',
                                 'Value': 'count'
                             },
-                        ]
+                        ],
+                        'Timestamp': datetime.utcnow(),
+                        'Values': [random.randint(10, 100),],
+                         StatisticValues': {
+                        'SampleCount': 1,
+                        'Sum': 55,
+                        'Minimum': 55,
+                        'Maximum': 55
+                        },
+                        'Unit': 'Count',
+                        'StorageResolution':1
                     },
-                    'Period': 30,
-                    'Stat': 'Average',
-                    'Unit': 'Count',
-                },
-                'Label': 'this is label',
-                'ReturnData': True,
-            },
-        ],
-        StartTime=datetime.utcnow()-timedelta(days=1),
-        EndTime=datetime.utcnow(),
-        #NextToken='string',
-        ScanBy='TimestampDescending',
-        #MaxDatapoints=2,
-        LabelOptions={
-            'Timezone': '+0000'
-        }
-    )
-    print(response)
+                    {
+                        'MetricName': 'Random Info',
+                        'Dimensions': [
+                            {
+                                'Name': 'numbers',
+                                'Value': 'count'
+                            },
+                        ],
+                        'Timestamp': datetime.utcnow(),
+                        'Values': [random.randint(10, 100),],
+                        'Unit': 'Count',
+                        'StorageResolution':1
+                    }
+                ]
+            )'''
+            print(response)
+
+        if datetime.utcnow()>= time_s+timedelta(minutes=1):
+            response = cloudwatch.get_metric_data(
+                MetricDataQueries=[
+                    {
+                        'Id': 'first_try',
+                        'MetricStat':{
+                            'Metric': {
+                                'Namespace': 'Try Metric',
+                                'MetricName': 'metric_1',
+                                'Dimensions': [
+                                    {
+                                        'Name': 'numbers',
+                                        'Value': 'count'
+                                    },
+                                ]
+                            },
+                            'Period': 1,
+                            'Stat': 'Average',
+                        },
+                        'Label': 'this is label',
+                        'ReturnData': True,
+                    },
+                    {
+                        'Id': 'second_try',
+                        'MetricStat':{
+                            'Metric': {
+                                'Namespace': 'Try Metric',
+                                'MetricName': 'metric_2',
+                                'Dimensions': [
+                                    {
+                                        'Name': 'numbers',
+                                        'Value': 'count'
+                                    },
+                                ]
+                            },
+                            'Period': 1,
+                            'Stat': 'Average',
+                        },
+                        'Label': 'this is label',
+                        'ReturnData': True,
+                    },
+                    {
+                        'Id': 'third_try',
+                        'MetricStat':{
+                            'Metric': {
+                                'Namespace': 'Try Metric',
+                                'MetricName': 'Random Info',
+                                'Dimensions': [
+                                    {
+                                        'Name': 'numbers',
+                                        'Value': 'count'
+                                    },
+                                ]
+                            },
+                            'Period': 1,
+                            'Stat': 'Average',
+                        },
+                        'Label': 'this is label',
+                        'ReturnData': True,
+                    }
+
+                ],
+                StartTime=time_s,
+                EndTime=datetime.utcnow(),
+                #NextToken='string',
+                ScanBy='TimestampAscending',
+                #MaxDatapoints=2,
+                LabelOptions={
+                    'Timezone': '+0000'
+                }
+            )
+            print(response)
+            break

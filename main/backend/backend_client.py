@@ -1,6 +1,6 @@
-from backend import webapp
+from main.backend import webapp
 from flask import request
-from backend import ec2_lifecycle
+from main.backend import ec2_lifecycle
 import json
 global new_cache
 global memcache_pool

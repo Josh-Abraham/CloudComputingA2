@@ -1,6 +1,6 @@
-from frontend.config import UPLOAD_FOLDER
+from main.frontend.config import UPLOAD_FOLDER
 import os, requests, base64
-from frontend.db_connection import get_db
+from main.frontend.db_connection import get_db
 from main.backend import s3_storage
 import tempfile
 import boto3
@@ -66,9 +66,8 @@ def upload_image(request,key):
             print("trying")
             base64_image = base64.b64encode(file.read())
             s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
-            print("u0loaded")
-            jsonReq = {"key":key}
-            res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            print("uploaded")
+            #TODO: memcache invalidate
             return "SAVED"
         return "INVALID"
 
@@ -77,17 +76,15 @@ def upload_image(request,key):
         _, extension = os.path.splitext(img_url)
         if extension.lower() in ALLOWED_EXTENSIONS:
             filename = key + extension
-            with open(UPLOAD_FOLDER + "/" + filename, 'r+b') as f:
+            with open(filename, 'wb') as f:
                f.write(response.content)
                f.seek(0)
+            with open(filename, 'rb') as f:
                base64_image = base64.b64encode(f.read())
             f.close()
-            print(response.content)
-            print(base64_image)
-            os.remove(UPLOAD_FOLDER + "/" + filename)
+            os.remove(filename)
             s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
-            jsonReq = {"key":key}
-            res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            #TODO: memcache invalidate
             return "SAVED"
     return "INVALID"
 
@@ -97,8 +94,16 @@ def download_image(key):
     with open('Temp.txt', 'rb') as file:
         base64_image = file.read().decode('utf-8')
     file.close()
+    os.remove("Temp.txt")
     print("downloaded")
     return base64_image
+
+def purge_images():
+    s3_del = boto3.resource('s3',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
+    bucket = s3_del.Bucket('image-bucket-a2')
+    bucket.objects.all().delete()
+    return True
+
 
 def write_image_base64(filename):
     """ Write image out in base64
@@ -167,3 +172,4 @@ def save_image_automated(request, key):
 
     except:
         return "INVALID"
+

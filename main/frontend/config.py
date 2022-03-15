@@ -8,4 +8,4 @@ db_config = {'user': 'root',
 max_capacity = 2
 replacement_policy = 'Least Recently Used'
 
-UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__)) + '/static/images'
+UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__)) + 'main/frontend/static/images'
