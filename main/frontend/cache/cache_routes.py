@@ -42,8 +42,19 @@ def memcache_params():
                 memcache_pool=memcache_pool,
                 pool_params=pool_params,
                 node_data=node_data)
-
-    # On error, reset to old params
+             
+        # On error, reset to old params
+        capacity, replacement_policy, update_time, memcache_pool, node_data, pool_params = format_cache_settings()
+        return render_template('memcache_manager.html',
+                capacity=capacity,
+                replacement_policy=replacement_policy,
+                update_time=update_time,
+                memcache_pool=memcache_pool,
+                pool_params=pool_params,
+                node_data=node_data,
+                status="TRUE")
+        
+    # On GET
     capacity, replacement_policy, update_time, memcache_pool, node_data, pool_params = format_cache_settings()
     return render_template('memcache_manager.html',
             capacity=capacity,
@@ -51,8 +62,9 @@ def memcache_params():
             update_time=update_time,
             memcache_pool=memcache_pool,
             pool_params=pool_params,
-            node_data=node_data,
-            status="TRUE")
+            node_data=node_data)
+    
+    
 
 @cache_routes.route('/clear_cache', methods=['GET', 'POST'])
 def clear_cache():
