@@ -2,15 +2,10 @@ from multiprocessing import pool
 from backend import webapp, memcache_pool
 from flask import request
 from backend import ec2_lifecycle
+from frontend.db_connection import get_db 
 import json, time, requests
 
 STATES = ['Starting', 'Stopping']
-
-cache_params = {
-    'max_capacity': 2,
-    'replacement_policy': 'Least Recently Used',
-    'update_time': time.time()
-}
 
 pool_params = {
     'mode': 'manual',
@@ -23,6 +18,12 @@ pool_params = {
 def setup_pool():
     """ Set Pool configuration
     """
+    cache_params = {
+        'max_capacity': 2,
+        'replacement_policy': 'Least Recently Used',
+        'update_time': time.time()
+    }
+    set_cache_params(cache_params)
     startup_count = ec2_lifecycle.set_pool_status()
     if startup_count == 0:
         start_instance()
@@ -73,9 +74,9 @@ def get_cache_info():
     """ Return all cache info (params and active instances)
     to the FE flask
     """
-    global memcache_pool, cache_params, pool_params
-    print(memcache_pool)
-    response = {
+    global memcache_pool, pool_params
+    cache_params = get_cache_params()
+    response = { 
                 'memcache_pool': memcache_pool,
                 'cache_params': cache_params,
                 'pool_params': pool_params
@@ -89,17 +90,19 @@ def get_cache_info():
 
 @webapp.route('/refreshConfiguration', methods = ['POST'])
 def refresh_configuration():
-    global cache_params, memcache_pool
+    global memcache_pool
     """ Set cache params
     """
     cache_params = request.get_json(force=True)
-    print(cache_params)
-    for host in memcache_pool:
-        address_ip = memcache_pool[host]
-        if not address_ip == None and not address_ip in STATES: 
-            # If an address is starting up, it will be set once it is ready
-            address = 'http://' + str(address_ip) + ':5000/refreshConfiguration'
-            res = requests.post(address, json=cache_params)
+    # Save to DB
+    resp = set_cache_params(cache_params)
+    if resp == True:
+        for host in memcache_pool:
+            address_ip = memcache_pool[host]
+            if not address_ip == None and not address_ip in STATES: 
+                # If an address is starting up, it will be set once it is ready
+                address = 'http://' + str(address_ip) + ':5000/refreshConfiguration'
+                res = requests.post(address, json=cache_params)
 
     return webapp.response_class(
             response = json.dumps("OK"),
@@ -170,6 +173,7 @@ def get_response(input=False):
     return response
 
 def get_cache_response():
+    cache_params = get_cache_params()
     response = webapp.response_class(
         response=json.dumps(cache_params),
         status=200,
@@ -177,3 +181,42 @@ def get_cache_response():
     )
     
     return response
+
+def set_cache_params(cache_params):
+    """ Set the cache parameters 
+        Parameters:
+            Cache Params Dict
+
+        Return: True
+    """
+    try:
+        cnx = get_db()
+        cursor = cnx.cursor(buffered = True)
+        query_add = ''' INSERT INTO cache_properties (update_time, max_capacity, replacement_policy) VALUES (%s,%s,%s)'''
+        cursor.execute(query_add,(cache_params['update_time'], cache_params['max_capacity'], cache_params['replacement_policy']))
+        cnx.commit()
+        return True
+    except:
+        return None
+
+def get_cache_params():
+    """ Get the most recent cache parameters
+    from the database
+    Return: cache_params row
+    """
+    try:
+        cnx = get_db()
+        cursor = cnx.cursor(buffered = True)
+        query = '''SELECT * FROM cache_properties WHERE param_key = (SELECT MAX(param_key) FROM cache_properties LIMIT 1)'''
+        cursor.execute(query)
+        if(cursor._rowcount):# if key exists in db
+            cache_params=cursor.fetchone()
+            cache_dict = {
+                'update_time': cache_params[1],
+                'max_capacity': cache_params[2],
+                'replacement_policy': cache_params[3]
+            }
+            return cache_dict
+        return None
+    except:
+        return None

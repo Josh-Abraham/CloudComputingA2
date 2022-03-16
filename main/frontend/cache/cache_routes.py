@@ -2,6 +2,7 @@
 from flask import Blueprint
 import requests, time
 from flask import render_template, request
+from frontend.db_connection import get_db
 
 cache_routes = Blueprint("cache_routes", __name__)
 backend_app = 'http://localhost:5001'
@@ -9,6 +10,8 @@ backend_app = 'http://localhost:5001'
 
 @cache_routes.route('/memcache_manager', methods=['GET'])
 def memcache_manager():
+    print("test Connection")
+    cnx = get_db()
     capacity, replacement_policy, update_time, memcache_pool, node_data, pool_params = format_cache_settings()
     return render_template('memcache_manager.html',
         capacity=capacity,
