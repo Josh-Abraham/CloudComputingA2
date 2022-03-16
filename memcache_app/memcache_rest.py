@@ -3,8 +3,6 @@ from flask import request
 import json
 global new_cache
 
-startup.call_ready_request()
-
 @webapp.route('/put', methods = ['POST'])
 def put():
     """ Put request to add key to memecache
@@ -68,6 +66,24 @@ def invalidate():
     config.memcache_obj.invalidate(req_json["key"])
     return get_response(True)
 
+@webapp.route('/refreshConfiguration', methods = ['POST'])
+def refresh_configs():
+    """ Refresh configuration with new parameters
+        Parameters:
+            request (Request): Capacity and replacement policy
+        Return:
+            response (JSON): "OK"
+    """
+    print("In the Route")
+    cache_params = request.get_json(force=True)
+    if not cache_params == None:
+        capacity = cache_params['max_capacity']
+        replacement_policy = cache_params['replacement_policy']
+        create_new_cache(replacement_policy, capacity)
+        config.memcache_obj = new_cache
+        return get_response(True)
+    return None
+
 def create_new_cache(replacement_policy, capacity):
     '''A new cache object is created and the previous cache
     values are added into it.
@@ -118,3 +134,13 @@ def get_response_no_key():
     )
 
     return response
+
+def startup_app():
+    print("Setting Params on start")
+    cache_params = json.loads(startup.call_ready_request())
+    capacity = cache_params['max_capacity']
+    replacement_policy = cache_params['replacement_policy']
+    create_new_cache(replacement_policy, capacity)
+    config.memcache_obj = new_cache
+
+startup_app()

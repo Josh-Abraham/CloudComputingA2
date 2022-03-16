@@ -1,8 +1,9 @@
 import os
 
-db_config = {'user': 'root',
-             'password': 'ece1779pass',
-             'host': '127.0.0.1',
+db_config = {'user': 'admin',
+             'password': '',
+             'host': 'a2-database.cjfk7vbroptm.us-east-1.rds.amazonaws.com',
+             'port': '3306',
              'database': 'ImageStore'}
 #
 max_capacity = 2
