@@ -3,7 +3,7 @@ from botocore.exceptions import ClientError
 from botocore.config import Config
 import logging
 import os,base64
-from frontend.config import UPLOAD_FOLDER
+from frontend.config import UPLOAD_FOLDER, aws_config
 
 my_config = Config(
     region_name = 'us-east-1',
@@ -30,7 +30,7 @@ def upload_file(file_name, bucket, s3=None,object_name=None ):
 
     # Upload the file
     if s3 is None:
-        s3 = boto3.client('s3',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
+        s3 = boto3.client('s3',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
         print("client created")
     try:
         print("trying")
@@ -43,7 +43,7 @@ def upload_file(file_name, bucket, s3=None,object_name=None ):
 
 '''def download_file(key,bucket='image-bucket-a2',s3=None):
     if s3 is None:
-        s3 = boto3.client('s3',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
+        s3 = boto3.client('s3',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
         print("client created")
 
     try:
@@ -61,7 +61,7 @@ def upload_file(file_name, bucket, s3=None,object_name=None ):
 
 
 
-#s3 =boto3.client('s3',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
+#s3 =boto3.client('s3',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
 '''s3.download_file()
 print('Existing buckets:')
 for bucket in response['Buckets']:

@@ -1,6 +1,6 @@
-from backend import webapp, memcache_pool
+from manager_server import webapp, memcache_pool
 from flask import request
-from backend import ec2_lifecycle
+from manager_server import ec2_lifecycle
 from frontend.db_connection import get_db 
 import json, time, requests
 

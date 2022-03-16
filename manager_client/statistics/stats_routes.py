@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 from frontend.db_connection import get_db
 import datetime
-from frontend.statistics.plot_utils import *
+from manager_client.statistics.plot_utils import *
 
 stats_routes = Blueprint("stats_routes", __name__)
 

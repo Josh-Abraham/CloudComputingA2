@@ -1,7 +1,8 @@
 import sys, boto3, threading, time
 from botocore.exceptions import ClientError
 from botocore.config import Config
-from backend import memcache_pool
+from manager_server import memcache_pool
+from frontend.config import aws_config
 
 my_config = Config(
     region_name = 'us-east-1',
@@ -12,7 +13,7 @@ my_config = Config(
     }
 )
 
-ec2 = boto3.client('ec2',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
+ec2 = boto3.client('ec2',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
 
 def startup(instance_id):
     print('Starting instance ' + instance_id)

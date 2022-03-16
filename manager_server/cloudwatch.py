@@ -1,5 +1,4 @@
 import copy
-
 import boto3
 from botocore.exceptions import ClientError
 from botocore.config import Config
@@ -9,6 +8,7 @@ from datetime import datetime, timedelta
 import random
 import time
 import json
+from frontend.config import aws_config
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ my_config = Config(
     }
 )
 
-cloudwatch=boto3.client('cloudwatch', config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
+cloudwatch=boto3.client('cloudwatch', config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
 
 class CloudWatchWrapper:
     """Encapsulates Amazon CloudWatch functions."""
@@ -295,7 +295,7 @@ def usage_demo():
         ['Average', 'Minimum', 'Maximum'])
     print(f"Got {len(stats['Datapoints'])} data points for metric "
           f"{metric_namespace}.{metric_name}.")
-    pprint(sorted(stats['Datapoints'], key=lambda x: x['Timestamp']))
+    print(sorted(stats['Datapoints'], key=lambda x: x['Timestamp']))
 
     print(f"Getting alarms for metric {metric_name}.")
     alarms = cw_wrapper.get_metric_alarms(metric_namespace, metric_name)
@@ -311,7 +311,7 @@ def usage_demo():
 
 if __name__ == '__main__':
     CW=CloudWatchWrapper(cloudwatch)
-    cloudlogs=boto3.client('logs',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
+    cloudlogs=boto3.client('logs',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
     '''  for _ in range(100):
         response = cloudwatch.put_metric_data(
             Namespace='Test Metric',

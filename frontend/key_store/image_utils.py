@@ -1,7 +1,7 @@
-from frontend.config import UPLOAD_FOLDER
+from frontend.config import aws_config, UPLOAD_FOLDER
 import os, requests, base64
 from frontend.db_connection import get_db
-from backend import s3_storage
+from manager_server import s3_storage
 import tempfile
 import boto3
 from botocore.config import Config
@@ -16,7 +16,7 @@ my_config = Config(
     }
 )
 
-s3 =boto3.client('s3',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
+s3 =boto3.client('s3',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
 
 def upload_image(request,key):
     img_url = request.form.get('img_url')
@@ -64,7 +64,7 @@ def download_image(key):
     return base64_image
 
 def purge_images():
-    s3_del = boto3.resource('s3',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
+    s3_del = boto3.resource('s3',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
     bucket = s3_del.Bucket('image-bucket-a2')
     bucket.objects.all().delete()
     return True
