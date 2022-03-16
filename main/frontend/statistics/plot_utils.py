@@ -1,6 +1,6 @@
 import base64
 from io import BytesIO
-from matplotlib.figure import Figure
+# from matplotlib.figure import Figure
 
 def prepare_data(rows):
     """ Prepare the data for plotting
@@ -36,14 +36,14 @@ def plot_graphs(data_x_axis, data_y_axis, y_label):
     """
     
     # Generate the figure **without using pyplot**.
-    fig = Figure(tight_layout=True)
-    ax = fig.subplots()
-    ax.plot(data_x_axis, data_y_axis)
-    ax.set(xlabel='Date-Time', ylabel=y_label)
-    # Save it to a temporary buffer.
+    # fig = Figure(tight_layout=True)
+    # ax = fig.subplots()
+    # ax.plot(data_x_axis, data_y_axis)
+    # ax.set(xlabel='Date-Time', ylabel=y_label)
+    # # Save it to a temporary buffer.
     buf = BytesIO()
-    fig.autofmt_xdate()
-    fig.savefig(buf, format="png")
+    # fig.autofmt_xdate()
+    # fig.savefig(buf, format="png")
     # Embed the result in the html output.
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return data
