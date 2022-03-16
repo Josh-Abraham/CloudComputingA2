@@ -5,7 +5,7 @@ from flask import render_template, request
 from frontend.db_connection import get_db
 
 cache_routes = Blueprint("cache_routes", __name__)
-backend_app = 'http://localhost:5001'
+backend_app = 'http://localhost:5002'
 
 
 @cache_routes.route('/memcache_manager', methods=['GET'])

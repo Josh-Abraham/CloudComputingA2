@@ -29,7 +29,7 @@ def call_ready_request():
         print(instance_id)
 
         host_ip_address = response['Reservations'][0]['Instances'][0]['PublicIpAddress']
-        address = 'http://' + str(host_ip_address) + ':5001/readyRequest'
+        address = 'http://' + str(host_ip_address) + ':5002/readyRequest'
         jsonReq = {
             "ip_address": instance_ip_address,
             "instance_id": instance_id

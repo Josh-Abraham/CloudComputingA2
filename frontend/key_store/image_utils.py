@@ -1,47 +1,74 @@
-from frontend.config import UPLOAD_FOLDER
+from frontend.config import aws_config, UPLOAD_FOLDER
 import os, requests, base64
 from frontend.db_connection import get_db
-
+from manager_server import s3_storage
+import tempfile
+import boto3
+from botocore.config import Config
 ALLOWED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif'}
 
-def save_image(request, key):
-    """ check if the file or url in request is an image and save into local storage,
-        calls write_to_db, and invalidates
-        memcache for the key if it is in the memcache
+my_config = Config(
+    region_name = 'us-east-1',
+    #signature_version = 'v4',
+    retries = {
+        'max_attempts': 10,
+        'mode': 'standard'
+    }
+)
 
-        Parameters:
-            request (request module): holds the form data for the image save
-            key (str): key to reference the file
+s3 =boto3.client('s3',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
 
-        Return:
-            response (str): "OK" or "ERROR"
-    """
+def upload_image(request,key):
     img_url = request.form.get('img_url')
     if img_url == "":
         file = request.files['file']
         _, extension = os.path.splitext(file.filename)
+        if extension.lower() in ALLOWED_EXTENSIONS:
+            print("trying")
+            base64_image = base64.b64encode(file.read())
+            s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
+            print("uploaded")
+            #TODO: memcache invalidate
+            jsonReq = {"key":key}
+            # res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            return write_img_db(key, key)
+            # return "SAVED"
+        return "INVALID"
 
+    response = requests.get(img_url)
+    if response.status_code == 200:
+        _, extension = os.path.splitext(img_url)
         if extension.lower() in ALLOWED_EXTENSIONS:
             filename = key + extension
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
-            jsonReq = {"key":key}
-            res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
-            return write_img_db(key, filename)
-        return "INVALID"
-    try:
-        response = requests.get(img_url)
-        if response.status_code == 200:
-            _, extension = os.path.splitext(img_url)
-            filename = key + extension
-            if extension.lower() in ALLOWED_EXTENSIONS:
-                with open(UPLOAD_FOLDER + "/" + filename, 'wb') as f:
-                    f.write(response.content)
-                jsonReq = {"key":key}
-                res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
-                return write_img_db(key, filename)
-        return "INVALID"
-    except:
-        return "INVALID"
+            with open(filename, 'wb') as f:
+               f.write(response.content)
+               f.seek(0)
+            with open(filename, 'rb') as f:
+               base64_image = base64.b64encode(f.read())
+            f.close()
+            os.remove(filename)
+            s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
+            #TODO: memcache invalidate
+            # res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            return write_img_db(key, key)
+    return "INVALID"
+
+def download_image(key):
+    with open('Temp.txt', 'wb') as file:
+        s3.download_fileobj('image-bucket-a2', key, file)
+    with open('Temp.txt', 'rb') as file:
+        base64_image = file.read().decode('utf-8')
+    file.close()
+    os.remove("Temp.txt")
+    print("downloaded")
+    return base64_image
+
+def purge_images():
+    s3_del = boto3.resource('s3',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
+    bucket = s3_del.Bucket('image-bucket-a2')
+    bucket.objects.all().delete()
+    return True
+
 
 def write_image_base64(filename):
     """ Write image out in base64
@@ -83,6 +110,7 @@ def write_img_db(image_key, image_tag):
     except:
         return "FAILURE"
 
+# TODO: Do we need to update this?
 def save_image_automated(request, key):
     """ check if the file in request is an image and save into local storage,
         calls write_to_db, and invalidates
@@ -110,3 +138,4 @@ def save_image_automated(request, key):
 
     except:
         return "INVALID"
+

@@ -1,15 +1,11 @@
 
 from flask import Flask, render_template, g
-from frontend.cache import cache_routes
-from frontend.key_store import image_routes
-from frontend.test_api import api_routes
-from frontend.statistics import stats_routes
+from manager_client.cache import cache_routes
+from manager_client.statistics import stats_routes
 
 # Flask Blueprint Setup
 webapp = Flask(__name__)
-webapp.register_blueprint(image_routes)
 webapp.register_blueprint(cache_routes)
-webapp.register_blueprint(api_routes)
 webapp.register_blueprint(stats_routes)
 
 # Core Routes
