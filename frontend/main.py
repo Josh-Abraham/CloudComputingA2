@@ -1,9 +1,9 @@
 
 from flask import Flask, render_template, g
-from main.frontend.cache import cache_routes
-from main.frontend.key_store import image_routes
-from main.frontend.test_api import api_routes
-from main.frontend.statistics import stats_routes
+from frontend.cache import cache_routes
+from frontend.key_store import image_routes
+from frontend.test_api import api_routes
+from frontend.statistics import stats_routes
 
 # Flask Blueprint Setup
 webapp = Flask(__name__)

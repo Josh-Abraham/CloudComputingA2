@@ -1,6 +1,6 @@
 import mysql.connector
 from flask import g
-from main.frontend.config import db_config
+from frontend.config import db_config
 
 def connect_to_database():
     return mysql.connector.connect(user=db_config['user'],

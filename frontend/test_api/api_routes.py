@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
-from main.frontend.db_connection import get_db
-from main.frontend.key_store.image_utils import *
+from frontend.db_connection import get_db
+from frontend.key_store.image_utils import *
 import requests
 
 api_routes = Blueprint("api_routes", __name__)

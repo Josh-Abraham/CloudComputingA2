@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template, request, send_file
-from main.frontend.db_connection import get_db
-from main.frontend.key_store.image_utils import *
+from frontend.db_connection import get_db
+from frontend.key_store.image_utils import *
 import requests
 
 image_routes = Blueprint("image_routes", __name__)
@@ -21,15 +21,6 @@ def add_key():
         return render_template("add_key.html", save_status=status)
     return render_template("add_key.html")
 
-@image_routes.route('/show_image2', methods = ['GET','POST']) #temporary test method
-def show_image2():
-    if request.method == 'POST':
-        key = request.form.get('key')
-        image=download_image(key)
-        return render_template('show_image.html', exists=True, filename=image)
-
-    return render_template('show_image.html')
-
 @image_routes.route('/show_image', methods = ['GET','POST'])
 def show_image():
     """ Endpoint to show the image
@@ -43,8 +34,10 @@ def show_image():
     if request.method == 'POST':
         key = request.form.get('key')
         jsonReq={"keyReq":key}
-        res= requests.post(cache_host + '/get', json=jsonReq)
-        if(res.text=='Unknown key'):#res.text is the file path of the image from the memcache
+        # TODO: Add Memcache get
+        # res= requests.post(cache_host + '/get', json=jsonReq)
+        res = None
+        if(res == None or res.text=='Unknown key'):
             #get from db and update memcache
             cnx = get_db()
             cursor = cnx.cursor(buffered=True)
@@ -55,16 +48,15 @@ def show_image():
                 #close the db connection
                 cnx.close()
                 #put into memcache
-                filename=image_tag
-                base64_image = write_image_base64(filename)
-                jsonReq = {key:base64_image}
-                res = requests.post(cache_host + '/put', json=jsonReq)
-                return render_template('show_image.html', exists=True, filename=base64_image)
+                image=download_image(image_tag)
+                jsonReq = {key:image}
+                # TODO: Add to Cache
+                # res = requests.post(cache_host + '/put', json=jsonReq)
+                return render_template('show_image.html', exists=True, filename=image)
             else:#the key is not found in the db
                 return render_template('show_image.html', exists=False, filename="does not exist")
 
-        else:# the key was found in memcache
-            # print("memcache response is:", res.text)
+        else:
             return render_template('show_image.html', exists=True, filename=res.text)
     return render_template('show_image.html')
 

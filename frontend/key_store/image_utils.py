@@ -1,7 +1,7 @@
-from main.frontend.config import UPLOAD_FOLDER
+from frontend.config import UPLOAD_FOLDER
 import os, requests, base64
-from main.frontend.db_connection import get_db
-from main.backend import s3_storage
+from frontend.db_connection import get_db
+from backend import s3_storage
 import tempfile
 import boto3
 from botocore.config import Config
@@ -18,45 +18,6 @@ my_config = Config(
 
 s3 =boto3.client('s3',config=my_config,aws_access_key_id= 'AKIA3U4U6D42HAMEVXES', aws_secret_access_key= '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')
 
-def save_image(request, key):
-    """ check if the file or url in request is an image and save into local storage,
-        calls write_to_db, and invalidates
-        memcache for the key if it is in the memcache
-
-        Parameters:
-            request (request module): holds the form data for the image save
-            key (str): key to reference the file
-
-        Return:
-            response (str): "OK" or "ERROR"
-    """
-    img_url = request.form.get('img_url')
-    if img_url == "":
-        file = request.files['file']
-        _, extension = os.path.splitext(file.filename)
-
-        if extension.lower() in ALLOWED_EXTENSIONS:
-            filename = key + extension
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
-            jsonReq = {"key":key}
-            res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
-            return write_img_db(key, filename)
-        return "INVALID"
-    try:
-        response = requests.get(img_url)
-        if response.status_code == 200:
-            _, extension = os.path.splitext(img_url)
-            filename = key + extension
-            if extension.lower() in ALLOWED_EXTENSIONS:
-                with open(UPLOAD_FOLDER + "/" + filename, 'wb') as f:
-                    f.write(response.content)
-                jsonReq = {"key":key}
-                res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
-                return write_img_db(key, filename)
-        return "INVALID"
-    except:
-        return "INVALID"
-
 def upload_image(request,key):
     img_url = request.form.get('img_url')
     if img_url == "":
@@ -68,7 +29,10 @@ def upload_image(request,key):
             s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
             print("uploaded")
             #TODO: memcache invalidate
-            return "SAVED"
+            jsonReq = {"key":key}
+            # res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            return write_img_db(key, key)
+            # return "SAVED"
         return "INVALID"
 
     response = requests.get(img_url)
@@ -85,7 +49,8 @@ def upload_image(request,key):
             os.remove(filename)
             s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
             #TODO: memcache invalidate
-            return "SAVED"
+            # res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            return write_img_db(key, key)
     return "INVALID"
 
 def download_image(key):
@@ -145,6 +110,7 @@ def write_img_db(image_key, image_tag):
     except:
         return "FAILURE"
 
+# TODO: Do we need to update this?
 def save_image_automated(request, key):
     """ check if the file in request is an image and save into local storage,
         calls write_to_db, and invalidates
