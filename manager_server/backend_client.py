@@ -2,7 +2,7 @@ from manager_server import webapp, memcache_pool
 from flask import request
 from manager_server import ec2_lifecycle
 from frontend.db_connection import get_db 
-import json, time, requests
+import json, time, requests, threading
 
 STATES = ['Starting', 'Stopping']
 

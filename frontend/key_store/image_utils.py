@@ -1,7 +1,7 @@
 from frontend.config import aws_config, UPLOAD_FOLDER
 import os, requests, base64
 from frontend.db_connection import get_db
-from manager_server import s3_storage
+from frontend.key_store import s3_storage
 import tempfile
 import boto3
 from botocore.config import Config

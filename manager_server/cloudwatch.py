@@ -446,7 +446,7 @@ if __name__ == '__main__':
                         'Timestamp': datetime.utcnow(),
                         'Values': [random.randint(10, 100),],
                         'Unit': 'Count',
-                        'StorageResolution':1
+                        'StorageResolution': 1
                     }
                 ]
             )'''

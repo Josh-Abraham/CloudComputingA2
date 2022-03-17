@@ -1,6 +1,6 @@
 from memcache_app import config, webapp, memcache, constants, startup
 from flask import request
-import json
+import json, datetime
 global new_cache
 
 @webapp.route('/put', methods = ['POST'])
