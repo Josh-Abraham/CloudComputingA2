@@ -137,7 +137,7 @@
                                         type="submit"
                                         name="pool-button"
                                         value="decrease"
-                                        {% if node_data["active"] + node_data["starting"] == 0 %} disabled {% endif %}
+                                        {% if node_data["active"] + node_data["starting"] == 1 %} disabled {% endif %}
                                         >-1</button>
                                 </div>
                             </div>
@@ -147,7 +147,7 @@
                                 <div class="form-row">
                                     <div class="form-col">
                                         <label for="maxMiss">Max Miss Rate: </label>
-                                        <label for="mixMiss">Min Miss Rate: </label>
+                                        <label for="minMiss">Min Miss Rate: </label>
                                         <label for="expRatio">Expansion Ratio: </label>
                                         <label for="shrinkRatio">Shrink Ratio: </label>
                                     </div>
@@ -160,8 +160,8 @@
                                             class="type-select-mini">
                                         <input 
                                             type="text"
-                                            id="mixMiss"
-                                            name="mixMiss"
+                                            id="minMiss"
+                                            name="minMiss"
                                             value="{{ minMiss }}"
                                             class="type-select-mini">
                                         <input 

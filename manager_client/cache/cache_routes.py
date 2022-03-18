@@ -106,6 +106,19 @@ def set_pool_config():
             manual_update_pool(request.form.get("pool-button"))
             
         else:
+            max_miss_rate = request.form.get("maxMiss")
+            min_miss_rate = request.form.get("minMiss")
+            exp_ratio = request.form.get("expRatio")
+            shrink_ratio = request.form.get("shrinkRatio")
+
+            cnx = get_db()
+            cursor = cnx.cursor(dictionary=True)
+            query_add = ''' INSERT INTO cache_policy (max_miss_rate, min_miss_rate, exp_ratio, shrink_ratio) VALUES (%s,%s,%s,%s)'''
+            cursor.execute(query_add,(max_miss_rate, min_miss_rate, exp_ratio, shrink_ratio))
+            cnx.commit()
+            cnx.close()
+
+            
             print(request.form.get("mode"))
         
         

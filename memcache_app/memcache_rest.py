@@ -1,16 +1,7 @@
-from memcache_app import config, webapp, memcache, constants
+from memcache_app import config, webapp, memcache, constants, startup
 from flask import request
-import json
+import json, datetime
 global new_cache
-
-@webapp.route('/ping', methods = ['GET'])
-def ping():
-    response = webapp.response_class(
-            response=json.dumps("OK"),
-            status=200,
-            mimetype='application/json'
-        )
-    return response
 
 @webapp.route('/put', methods = ['POST'])
 def put():
@@ -75,6 +66,47 @@ def invalidate():
     config.memcache_obj.invalidate(req_json["key"])
     return get_response(True)
 
+@webapp.route('/refreshConfiguration', methods = ['POST'])
+def refresh_configs():
+    """ Refresh configuration with new parameters
+        Parameters:
+            request (Request): Capacity and replacement policy
+        Return:
+            response (JSON): "OK"
+    """
+    print("In the Route")
+    cache_params = request.get_json(force=True)
+    if not cache_params == None:
+        capacity = cache_params['max_capacity']
+        replacement_policy = cache_params['replacement_policy']
+        create_new_cache(replacement_policy, capacity)
+        config.memcache_obj = new_cache
+        return get_response(True)
+    return None
+
+@webapp.route('/getStatistics', methods = ['GET'])
+def get_statistics():
+    miss_rate = 0
+    hit_rate = 0
+    if not config.memcache_obj.miss + config.memcache_obj.hit == 0:
+        miss_rate = (config.memcache_obj.miss / (config.memcache_obj.miss + config.memcache_obj.hit)) * 100
+        hit_rate = (config.memcache_obj.hit / (config.memcache_obj.miss + config.memcache_obj.hit)) * 100
+    
+
+    statistics = {
+        'size': config.memcache_obj.current_size, 
+        'access_count': config.memcache_obj.access_count,
+        'miss_rate': miss_rate,
+        'key_count': config.memcache_obj.currsize,
+        'hit_rate': hit_rate
+    }
+    response = webapp.response_class(
+            response=json.dumps(statistics),
+            status=200,
+            mimetype='application/json'
+    )
+    return response
+
 def create_new_cache(replacement_policy, capacity):
     '''A new cache object is created and the previous cache
     values are added into it.
@@ -125,3 +157,13 @@ def get_response_no_key():
     )
 
     return response
+
+def startup_app():
+    print("Setting Params on start")
+    cache_params = json.loads(startup.call_ready_request())
+    capacity = cache_params['max_capacity']
+    replacement_policy = cache_params['replacement_policy']
+    create_new_cache(replacement_policy, capacity)
+    config.memcache_obj = new_cache
+
+startup_app()
