@@ -1,7 +1,7 @@
 
 from flask import Blueprint
 import requests, time
-from flask import render_template, request
+from flask import render_template, request, redirect
 from frontend.db_connection import get_db
 
 cache_routes = Blueprint("cache_routes", __name__)
@@ -172,6 +172,12 @@ def format_cache_settings():
         'starting': starting_nodes
     }
     return capacity, replacement_policy, update_time, pool_data, node_data, pool_params
+
+@cache_routes.route('/navigate')
+def navigate():
+	hostname = request.headers.get('Host').split(':')[0]
+	print(hostname)
+	return redirect('http://'+hostname + ':5000')
 
 
 def manual_update_pool(cmd):

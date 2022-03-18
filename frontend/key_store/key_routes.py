@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify, render_template, request, send_file
+from flask import Blueprint, jsonify, render_template, request, send_file, redirect
 from frontend.db_connection import get_db
 from frontend.key_store.image_utils import *
-import requests
+from manager_server.backend_client import total_active_node, hash_key
+import requests 
 
 image_routes = Blueprint("image_routes", __name__)
 
@@ -18,6 +19,8 @@ def add_key():
     if request.method == 'POST':
         key = request.form.get('key')
         status = upload_image(request, key)
+        node=hash_key(key)
+        print(node[1])
         return render_template("add_key.html", save_status=status)
     return render_template("add_key.html")
 
@@ -35,8 +38,9 @@ def show_image():
         key = request.form.get('key')
         jsonReq={"keyReq":key}
         # TODO: Add Memcache get
-        # res= requests.post(cache_host + '/get', json=jsonReq)
-        res = None
+        ip=hash_key(key)[1]
+        res= requests.post('http://'+ str(ip) + ':5000/get', json=jsonReq)
+        #res = None
         if(res == None or res.text=='Unknown key'):
             #get from db and update memcache
             cnx = get_db()
@@ -51,7 +55,7 @@ def show_image():
                 image=download_image(image_tag)
                 jsonReq = {key:image}
                 # TODO: Add to Cache
-                # res = requests.post(cache_host + '/put', json=jsonReq)
+                res = requests.post('http://'+ str(ip) + ':5000/put', json=jsonReq)
                 return render_template('show_image.html', exists=True, filename=image)
             else:#the key is not found in the db
                 return render_template('show_image.html', exists=False, filename="does not exist")
@@ -90,3 +94,10 @@ def key_store():
         return render_template('key_store.html', keys=keys, total=total)
     else:
         return render_template('key_store.html')
+
+
+@image_routes.route('/navigate')
+def navigate():
+	hostname = request.headers.get('Host').split(':')[0]
+	print(hostname)
+	return redirect('http://'+hostname + ':5001')

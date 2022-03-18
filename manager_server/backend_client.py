@@ -1,8 +1,10 @@
-from manager_server import webapp, memcache_pool, ec2_lifecycle
+from manager_server import webapp, memcache_pool
 from flask import request
-from manager_server.s3_storage import purge_images
+from manager_server import ec2_lifecycle
 from frontend.db_connection import get_db 
+from manager_server.s3_storage import purge_images
 import json, time, requests, threading
+import hashlib
 
 STATES = ['Starting', 'Stopping']
 
@@ -211,6 +213,29 @@ def get_cache_params():
         return None
     except:
         return None
+
+def total_active_node(): #or we maintain a global variable
+    global memcache_pool
+    count=0
+    active_list=[]
+    for id, ip in memcache_pool.items():
+        if not ip == None and not ip == 'Stopping' and not ip == "Starting":
+            count+=1
+            active_list.append((id,ip))
+    return count, active_list
+
+def hash_key(key: str):
+    '''gives us which memcache instance a key should be saved or located given
+    the key to hash and the number of active nodes
+
+    returns a tuple containing the memcache id and ip'''
+
+    hash_val=hashlib.md5(key.encode()).hexdigest()
+    hash_val=int(hash_val, base=16)
+    index=(hash_val % 16)+1
+    active_node,active_list= total_active_node()
+    memcache_no=index % active_node
+    return(active_list[memcache_no])
 
 cache_params = {
     'max_capacity': 2,

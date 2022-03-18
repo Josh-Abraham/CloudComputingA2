@@ -2,6 +2,7 @@ from frontend.config import aws_config, UPLOAD_FOLDER
 import os, requests, base64
 from frontend.db_connection import get_db
 from frontend.key_store import s3_storage
+from manager_server.backend_client import total_active_node, hash_key
 import tempfile
 import boto3
 from botocore.config import Config
@@ -30,7 +31,8 @@ def upload_image(request,key):
             print("uploaded")
             #TODO: memcache invalidate
             jsonReq = {"key":key}
-            # res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            ip=hash_key(key)[1]
+            res = requests.post('http://'+ str(ip) +':5000/invalidate', json=jsonReq)
             return write_img_db(key, key)
             # return "SAVED"
         return "INVALID"
@@ -49,7 +51,8 @@ def upload_image(request,key):
             os.remove(filename)
             s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
             #TODO: memcache invalidate
-            # res = requests.post('http://localhost:5001/invalidate', json=jsonReq)
+            ip=hash_key(key)[1]
+            res = requests.post('http://'+ str(ip) +':5000/invalidate', json=jsonReq)
             return write_img_db(key, key)
     return "INVALID"
 
