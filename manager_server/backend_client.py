@@ -2,7 +2,7 @@ from manager_server import webapp, memcache_pool
 from flask import request
 from manager_server import ec2_lifecycle
 from frontend.db_connection import get_db 
-import json, time, requests
+import json, time, requests, threading
 
 STATES = ['Starting', 'Stopping']
 
@@ -12,21 +12,6 @@ pool_params = {
         'size': 0
     }
 }
-
-@webapp.before_first_request
-def setup_pool():
-    """ Set Pool configuration
-    """
-    cache_params = {
-        'max_capacity': 2,
-        'replacement_policy': 'Least Recently Used',
-        'update_time': time.time()
-    }
-    set_cache_params(cache_params)
-    startup_count = ec2_lifecycle.set_pool_status()
-    if startup_count == 0:
-        start_instance()
-
 
 @webapp.route('/', methods = ['GET'])
 def main():
@@ -219,3 +204,13 @@ def get_cache_params():
         return None
     except:
         return None
+
+cache_params = {
+    'max_capacity': 2,
+    'replacement_policy': 'Least Recently Used',
+    'update_time': time.time()
+}
+set_cache_params(cache_params)
+startup_count = ec2_lifecycle.set_pool_status()
+if startup_count == 0:
+    start_instance()
