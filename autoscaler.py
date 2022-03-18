@@ -2,6 +2,10 @@ import  mysql.connector, requests, json, boto3, time
 import pandas as pd
 from botocore.exceptions import ClientError
 from botocore.config import Config
+
+instance_ids = ['i-04064013ac1862adf']
+
+
 resp = requests.get("http://169.254.169.254/latest/user-data/")
 conf_dict = json.loads(resp.content.decode('utf-8'))
 
@@ -25,18 +29,17 @@ aws_config = {
     'aws_secret_access_key': conf_dict['aws_secret_access_key']
 }
 
+
 log_client = boto3.client('logs', region_name="us-east-1", aws_access_key_id=aws_config['aws_access_key_id'], aws_secret_access_key=aws_config['aws_secret_access_key'])
 ec2 = boto3.client('ec2', config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
-
-
+backend_app = 'http://localhost:5002'
 
 def connect_to_database():
     return mysql.connector.connect(user=db_config['user'],
                                    password=db_config['password'],
                                    host=db_config['host'],
                                    port=db_config['port'],
-                                   database=db_config['database'])
-                        
+                                   database=db_config['database'])          
 
 def get_stats_logs():
     start_time = round((time.time() - 30*60) * 1000)
@@ -64,11 +67,15 @@ def get_stats_logs():
         data['timestamp']= pd.to_datetime(data['timestamp'])
         sample_data = data.resample('2Min', on='timestamp').mean()
         miss_rate = sample_data.iloc[-1]['miss_rate']
-        hit_rate = sample_data.iloc[-1]['hit_rate']
-        return (miss_rate, hit_rate)
+        
+        return miss_rate
     return None
 
-def get_pool_ready(instance_ids):
+def get_pool_ready_count():
+    global instance_ids
+
+    active_count = 0
+    unstable_count = 0
     try:
         ec2.describe_instances(InstanceIds=instance_ids, DryRun=True)
         print('Instance Status')
@@ -81,33 +88,70 @@ def get_pool_ready(instance_ids):
         for instance in response['Reservations'][0]['Instances']:
             print(instance['InstanceId'])
             if (instance['State']['Name'] == 'pending' or instance['State']['Name'] == 'shutting-down' or instance['State']['Name'] == 'stopping'):
-                return False
-        return True
+                unstable_count += 1
+            elif (instance['State']['Name'] == 'running'):
+                active_count += 1
+        return unstable_count, active_count
     except ClientError as e:
         print(e)
 	
+def get_cache_policy():
+    cnx = db
+    cursor = cnx.cursor(buffered = True)
+    query = '''SELECT * FROM cache_policy WHERE param_key = (SELECT MAX(param_key) FROM cache_policy LIMIT 1)'''
+    cursor.execute(query)
+    if(cursor._rowcount):# if key exists in db
+        cache_policy=cursor.fetchone()
+        return cache_policy
+    return None
 
-def auto_scale(cache_policy):
-    # runs every 1 minute
-    
-    data = get_stats_logs()
-    if not data == None:
-        miss_rate = data[0]
-        hit_rate = data[1]
-        if miss_rate > cache_policy['max_miss_rate']:
-            # Scale up instances
-            print("Scale up")
-            # Get current memcache count, then scale up max 8
-        elif miss_rate < cache_policy['min_miss_rate']:
-            print("Scale Down")
+def auto_scale():
+    global db, backend_app
 
-        print(miss_rate)
+    while (True):
+        # runs every minute
+        unstable_count, active_count = get_pool_ready_count()
+        # Unstable implies instances are stil starting, stopping or pending
+        
+        if not unstable_count == 0:
+            miss_rate = get_stats_logs()
 
-cache_policy = {
-    'max_miss_rate': 0,
-    'min_miss_rate': 0, 
-    'exp_ratio': 0,
-    'shrink_ratio': 0
-}
+            # Miss rate is none, when no logs have been printed for this time period
+            if not miss_rate == None:
+                cache_policy = get_cache_policy()
 
-auto_scale(cache_policy)
+                if not cache_policy == None:
+                    if miss_rate > cache_policy[1]:
+                        # Max Miss Rate, Scale up instances
+                        print("Scale up")
+                        expand_factor = cache_policy[3]
+                        max_startup = round(expand_factor * active_count)
+                        if max_startup + active_count > 8:
+                            # Start a max of 8 nodes
+                            max_startup = 8 - active_count
+                        
+                        for i in range(max_startup):
+                            print("Call startup node")
+                            requests.post(backend_app + '/startInstance')
+
+                    # Get current memcache count, then scale up max 8
+                    elif miss_rate < cache_policy[2]:
+                        # Min Miss Rate, Scale up instances
+                        print("Scale Down")
+                        shrink_factor = cache_policy[4]
+                        max_shutdown = round(shrink_factor * active_count)
+                        if  active_count - max_shutdown < 1:
+                            # Shutdown max of all but 1
+                            max_shutdown = active_count - 1
+                        
+                        for i in range(max_startup):
+                            print("Call shutdown node")
+                            requests.post(backend_app + '/stopInstance')
+        time.sleep(60)
+        
+
+
+
+
+db = connect_to_database()
+auto_scale()
