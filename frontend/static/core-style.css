@@ -1,0 +1,148 @@
+* {
+  font-family: "Amazon Ember",sans-serif;
+  font-size: 14px;
+}
+
+h3 {
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+
+.top_bar {
+  line-height: 50px;
+  background-color: rgb(17, 79, 130);
+  margin: -8px -8px 0px -8px;
+}
+
+.top_bar a {
+  color: #fff;
+  text-align: center;
+  padding: 16px 16px;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.top_bar a:hover {
+  background-color: rgb(28, 130, 214);
+}
+
+
+.form-outline {
+  border-radius: 5px;
+  width: 480px;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+
+.type-select {
+  width: 350px;
+  padding: 8px 10px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.type-select-mini {
+  width: 100px;
+  line-height: 25px;
+  margin-left: 5px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.hidden {
+    visibility: hidden;
+    width: 0px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+  height: 150px;
+  justify-content: space-between;
+}
+
+.select_button {
+  background-color: #fff;
+  border: 1px solid #d5d9d9;
+  border-radius: 5px;
+  box-sizing: border-box;
+  color: #0f1111;
+  cursor: pointer;
+  display: inline-block;
+  line-height: 32px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  width: 120px;
+}
+
+.select_button:hover {
+  background-color: #47bfd1;
+}
+
+.submit-button {
+  width: 100%;
+  margin: 15px 0 0 0;
+  height: 32px;
+  border-radius: 5px;
+  border: 1px solid #d5d9d9;
+  background-color: #fff;
+}
+
+.submit-button:hover {
+  background-color: rgb(28, 130, 214);
+}
+
+
+.image-preview {
+  max-width: 100%;
+  max-height: calc(100vh - 200px);
+}
+
+.label-padding {
+  line-height: 30px;
+}
+
+.plot {
+	flex-grow:1
+}
+
+
+.plot-row {
+	display:flex;
+	flex-direction: row;
+}
+
+.plot-grid {
+	display:flex;
+	flex-direction: column;
+}
+
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 200px;
+text-align: center
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: center;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}

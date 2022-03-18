@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ECE1779 Assignment Two</title>
+    <link rel="stylesheet" href='/static/core-style.css' />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.1.0/echarts-en.common.min.js"></script>
+  </head>
+  <body>
+    {% include "top_bar.html" %}
+    <!-- Prepare a DOM with a defined width and height for ECharts -->
+    <div id="wrapper" style="margin-top: 20px">
+	<div class="form-row" style="justify-content:center">
+		<div id="active_count_chart" style="width: 600px;height:500px;"></div>
+		<div id="access_count_chart" style="width: 600px;height:500px;"></div>
+    </div>
+	<div class="form-row" style="justify-content:center">
+		<div id="hit_rate_chart" style="width: 600px;height:500px;"></div>
+		<div id="miss_rate_chart" style="width: 600px;height:500px;"></div>
+	</div>
+	<div class="form-row" style="justify-content:center">
+    	<div id="size_chart" style="width: 600px;height:500px;"></div>
+    	<div id="key_count_chart" style="width: 600px;height:500px;"></div>
+	</div>
+    
+    </div>
+
+
+    <script type="text/javascript">
+      // Initialize the echarts instance based on the prepared dom
+      var size_chart = echarts.init(document.getElementById('size_chart'));
+      var miss_rate_chart = echarts.init(document.getElementById('miss_rate_chart'));
+      var hit_rate_chart = echarts.init(document.getElementById('hit_rate_chart'));
+      var key_count_chart = echarts.init(document.getElementById('key_count_chart'));
+      var access_count_chart = echarts.init(document.getElementById('access_count_chart'));
+      var active_count_chart = echarts.init(document.getElementById('active_count_chart'));
+
+
+      var stats_data = JSON.parse('{{ stats_data | tojson | safe}}')
+     
+      // Configure Data
+      var options = { month: '2-digit', day: '2-digit', hour: 'numeric', minute: 'numeric' };
+      var times = {{ stats_data }}[0]
+      var dates = []
+      for (const time of times) { 
+          dates.push(new Date(time / 1000000).toLocaleString("en-US", options))
+      }
+      var size = {{ stats_data }}[1]
+      var miss_rate = {{ stats_data }}[2]
+      var hit_rate = {{ stats_data }}[3]
+      var key_count = {{ stats_data }}[4]
+      var access_count = {{ stats_data }}[5]
+      var active_count = {{ stats_data }}[6]
+
+      // Specify the configuration items and data for Active Count Chart
+      var size_chart_options = {
+        color: ['#37A2FF', '#FF0087', '#FFBF00'],
+        title: {
+          display: true,
+          text: 'Average Memcache Size',
+        },
+        xAxis: {
+          type: 'category',
+          data: dates
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross',
+            label: {
+              backgroundColor: '#6a7985'
+            }
+          }
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            data: size,
+            type: 'line',
+            areaStyle: {
+              opacity: 0.8,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: 0,
+                  color: 'rgb(34, 147, 240)'
+                },
+                {
+                  offset: 1,
+                  color: 'rgb(17, 79, 130)'
+                }
+              ])
+            },
+            smooth: true,
+            animation: false
+          }
+        ]
+      };
+
+      // Specify the configuration items and data for Hit & Miss rate
+      var miss_rate_chart_options = {
+        title: {
+          display: true,
+          text: 'Average Miss Rate',
+        },
+        color: ['#37A2FF', '#FF0087', '#FFBF00'],
+        xAxis: {
+          type: 'category',
+          data: dates
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross',
+            label: {
+              backgroundColor: '#6a7985'
+            }
+          }
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            data: miss_rate,
+            type: 'line',
+            areaStyle: {
+              opacity: 0.8,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: 0,
+                  color: 'rgb(34, 147, 240)'
+                },
+                {
+                  offset: 1,
+                  color: 'rgb(17, 79, 130)'
+                }
+              ])
+            },
+            smooth: true,
+            animation: false
+          }
+        ]
+      };
+
+      var hit_rate_chart_options = {
+        title: {
+          display: true,
+          text: 'Average Hit Rate',
+        },
+        color: ['#37A2FF', '#FF0087', '#FFBF00'],
+        xAxis: {
+          type: 'category',
+          data: dates
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross',
+            label: {
+              backgroundColor: '#6a7985'
+            }
+          }
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            data: hit_rate,
+            type: 'line',
+            areaStyle: {
+              opacity: 0.8,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: 0,
+                  color: 'rgb(34, 147, 240)'
+                },
+                {
+                  offset: 1,
+                  color: 'rgb(17, 79, 130)'
+                }
+              ])
+            },
+            smooth: true,
+            animation: false
+          }
+        ]
+      };
+
+      // Specify the configuration items and data for Active Count Chart
+      var key_count_chart_options = {
+        title: {
+          display: true,
+          text: 'Average Number of Keys in the Cache',
+        },
+        color: ['#37A2FF', '#FF0087', '#FFBF00'],
+        xAxis: {
+          type: 'category',
+          data: dates
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross',
+            label: {
+              backgroundColor: '#6a7985'
+            }
+          }
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            data: key_count,
+            type: 'line',
+            areaStyle: {
+              opacity: 0.8,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: 0,
+                  color: 'rgb(34, 147, 240)'
+                },
+                {
+                  offset: 1,
+                  color: 'rgb(17, 79, 130)'
+                }
+              ])
+            },
+            smooth: true,
+            animation: false
+          }
+        ]
+      };
+
+      // Specify the configuration items and data for Active Count Chart
+      var access_count_chart_options = {
+        title: {
+          display: true,
+          text: 'Average Memcache Access Count',
+        },
+        color: ['#37A2FF', '#FF0087', '#FFBF00'],
+        xAxis: {
+          type: 'category',
+          data: dates
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross',
+            label: {
+              backgroundColor: '#6a7985'
+            }
+          }
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            data: access_count,
+            type: 'line',
+            areaStyle: {
+              opacity: 0.8,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: 0,
+                  color: 'rgb(34, 147, 240)'
+                },
+                {
+                  offset: 1,
+                  color: 'rgb(17, 79, 130)'
+                }
+              ])
+            },
+            smooth: true,
+            animation: false
+          }
+        ]
+      };
+
+      // Specify the configuration items and data for Active Count Chart
+      var active_count_chart_options = {
+        title: {
+          display: true,
+          text: 'Average Pool Size',
+        },
+        color: ['#37A2FF', '#FF0087', '#FFBF00'],
+        xAxis: {
+          type: 'category',
+          data: dates
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross',
+            label: {
+              backgroundColor: '#6a7985'
+            }
+          }
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            data: active_count,
+            type: 'line',
+            areaStyle: {
+              opacity: 0.8,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: 0,
+                  color: 'rgb(34, 147, 240)'
+                },
+                {
+                  offset: 1,
+                  color: 'rgb(17, 79, 130)'
+                }
+              ])
+            },
+            smooth: true,
+            animation: false
+          }
+        ]
+      };
+
+      // Display the chart using the configuration items and data just specified.
+      size_chart.setOption(size_chart_options);
+      miss_rate_chart.setOption(miss_rate_chart_options);
+      hit_rate_chart.setOption(hit_rate_chart_options);
+      key_count_chart.setOption(key_count_chart_options);
+      access_count_chart.setOption(access_count_chart_options);
+      active_count_chart.setOption(active_count_chart_options);
+    </script>
+  </body>
+</html>
