@@ -88,14 +88,16 @@ def set_pool_status():
     # Dry run succeeded, call describe_instance_status without dryrun
     startCount = 0
     try:
-        response = ec2.describe_instances(InstanceIds=instances, DryRun=False)
-        for instance in response['Reservations']:
-            inst_name = instance['Instances'][0]['State']['Name']
+        for instance in instances:
+            response = ec2.describe_instances(InstanceIds=[instance], DryRun=False)
+            inst_name = response['Reservations'][0]['Instances'][0]['State']['Name']
+            
             if (inst_name == 'running'):
-                memcache_pool[instance['InstanceId']] = instance['PublicIpAddress']
+                ip_address = response['Reservations'][0]['Instances'][0]['PublicIpAddress']
+                memcache_pool[instance] = ip_address
                 startCount += 1
             else:
-                memcache_pool[instance['InstanceId']] = None
+                memcache_pool[instance] = None
         return startCount
     except ClientError as e:
         print(e)

@@ -102,8 +102,8 @@ def clear_cache_pool():
     """
     for host in memcache_pool:
         address_ip = memcache_pool[host]
-        print('IP ' + address_ip)
         if not address_ip == None and not address_ip in STATES:
+            print('IP ' + address_ip)
             # Only need to clear active ports
             address = 'http://' + str(address_ip) + ':5000/clear'
             res = requests.post(address)

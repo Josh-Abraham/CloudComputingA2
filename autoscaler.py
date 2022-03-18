@@ -3,7 +3,7 @@ import pandas as pd
 from botocore.exceptions import ClientError
 from botocore.config import Config
 
-instance_ids = ['i-04064013ac1862adf', 'i-0360438eeb0ed4afc']
+instance_ids = ['i-04064013ac1862adf', 'i-0360438eeb0ed4afc', 'i-0cc80fcbd4dc96d6c', "i-012533eda9b15248f", "i-04b2f2abb77a085a8", "i-00f92c02d4a89d8bf", "i-04d218436060eaa68", "i-05a8c558bbab9cfdb"]
 
 
 resp = requests.get("http://169.254.169.254/latest/user-data/")
@@ -42,7 +42,7 @@ def connect_to_database():
                                    database=db_config['database'])          
 
 def get_stats_logs():
-    start_time = round((time.time() - 30*60) * 1000)
+    start_time = round((time.time() - 60) * 1000)
     current_time = round(time.time() * 1000)
 
     response = log_client.get_log_events(
