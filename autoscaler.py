@@ -3,7 +3,7 @@ import pandas as pd
 from botocore.exceptions import ClientError
 from botocore.config import Config
 
-instance_ids = ['i-04064013ac1862adf']
+instance_ids = ['i-04064013ac1862adf', 'i-0360438eeb0ed4afc']
 
 
 resp = requests.get("http://169.254.169.254/latest/user-data/")
@@ -85,11 +85,11 @@ def get_pool_ready_count():
 
     try:
         response = ec2.describe_instances(InstanceIds=instance_ids, DryRun=False)
-        for instance in response['Reservations'][0]['Instances']:
-            print(instance['InstanceId'])
-            if (instance['State']['Name'] == 'pending' or instance['State']['Name'] == 'shutting-down' or instance['State']['Name'] == 'stopping'):
+        for instance in response['Reservations']:
+            inst_name = instance['Instances'][0]['State']['Name']
+            if (inst_name == 'pending' or inst_name == 'shutting-down' or inst_name == 'stopping'):
                 unstable_count += 1
-            elif (instance['State']['Name'] == 'running'):
+            elif (inst_name == 'running'):
                 active_count += 1
         return unstable_count, active_count
     except ClientError as e:
@@ -112,14 +112,16 @@ def auto_scale():
         # runs every minute
         unstable_count, active_count = get_pool_ready_count()
         # Unstable implies instances are stil starting, stopping or pending
-        
-        if not unstable_count == 0:
-            miss_rate = get_stats_logs()
+        print("Active Count " + str(active_count))
+        print("Unstable Count " + str(unstable_count))
 
+        if unstable_count == 0:
+            miss_rate = get_stats_logs()
+            print("Current Miss Rate: " + str(miss_rate))
             # Miss rate is none, when no logs have been printed for this time period
             if not miss_rate == None:
                 cache_policy = get_cache_policy()
-
+                print(cache_policy)
                 if not cache_policy == None:
                     if miss_rate > cache_policy[1]:
                         # Max Miss Rate, Scale up instances
@@ -144,7 +146,7 @@ def auto_scale():
                             # Shutdown max of all but 1
                             max_shutdown = active_count - 1
                         
-                        for i in range(max_startup):
+                        for i in range(max_shutdown):
                             print("Call shutdown node")
                             requests.post(backend_app + '/stopInstance')
         time.sleep(60)

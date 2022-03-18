@@ -89,9 +89,9 @@ def set_pool_status():
     startCount = 0
     try:
         response = ec2.describe_instances(InstanceIds=instances, DryRun=False)
-        for instance in response['Reservations'][0]['Instances']:
-            print(instance['InstanceId'])
-            if (instance['State']['Name'] == 'running'):
+        for instance in response['Reservations']:
+            inst_name = instance['Instances'][0]['State']['Name']
+            if (inst_name == 'running'):
                 memcache_pool[instance['InstanceId']] = instance['PublicIpAddress']
                 startCount += 1
             else:

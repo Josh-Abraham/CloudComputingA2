@@ -22,9 +22,9 @@ CREATE TABLE cache_stats(
       );
 CREATE TABLE cache_policy (
     param_key INT NOT NULL AUTO_INCREMENT,
-    max_miss_rate INT NOT NULL,
-    min_miss_rate INT NOT NULL,
-    exp_ratio INT NOT NULL,
-    shrink_ratio INT NOT NULL,
+    max_miss_rate FLOAT NOT NULL,
+    min_miss_rate FLOAT NOT NULL,
+    exp_ratio FLOAT NOT NULL,
+    shrink_ratio FLOAT NOT NULL,
     PRIMARY KEY (param_key)
 );
