@@ -99,5 +99,3 @@ def set_pool_status():
         return startCount
     except ClientError as e:
         print(e)
-    
-
