@@ -84,6 +84,22 @@ def refresh_configs():
         return get_response(True)
     return None
 
+@webapp.route('/getStatistics', methods = ['GET'])
+def get_statistics():
+    statistics = {
+        'size': config.memcache_obj.current_size, 
+        'access_count': config.memcache_obj.access_count,
+        'miss_rate': config.memcache_obj.miss,
+        'key_count': config.memcache_obj.currsize,
+        'hit_rate': config.memcache_obj.hit
+    }
+    response = webapp.response_class(
+            response=json.dumps(statistics),
+            status=200,
+            mimetype='application/json'
+    )
+    return response
+
 def create_new_cache(replacement_policy, capacity):
     '''A new cache object is created and the previous cache
     values are added into it.

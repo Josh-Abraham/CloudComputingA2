@@ -13,21 +13,6 @@ pool_params = {
     }
 }
 
-@webapp.before_first_request
-def setup_pool():
-    """ Set Pool configuration
-    """
-    cache_params = {
-        'max_capacity': 2,
-        'replacement_policy': 'Least Recently Used',
-        'update_time': time.time()
-    }
-    set_cache_params(cache_params)
-    startup_count = ec2_lifecycle.set_pool_status()
-    if startup_count == 0:
-        start_instance()
-
-
 @webapp.route('/', methods = ['GET'])
 def main():
     return get_response(True)
@@ -219,3 +204,13 @@ def get_cache_params():
         return None
     except:
         return None
+
+cache_params = {
+    'max_capacity': 2,
+    'replacement_policy': 'Least Recently Used',
+    'update_time': time.time()
+}
+set_cache_params(cache_params)
+startup_count = ec2_lifecycle.set_pool_status()
+if startup_count == 0:
+    start_instance()

@@ -35,14 +35,14 @@ def create_log(message):
 
     try:
         client.put_log_events(**log_event)
-        print("Log Created")
+        print("Log created")
     except:
         print("Log not added")
 
 
 def get_aggregate_statistics():
     global memcache_pool
-    size, access_count, miss_rate, active_count = 0, 0 , 0 , 0
+    size, access_count, miss_rate, hit_rate, key_count, active_count = 0, 0, 0, 0, 0, 0
     for host in memcache_pool:
             address_ip = memcache_pool[host]
             if not address_ip == None and not address_ip in STATES: 
@@ -52,23 +52,27 @@ def get_aggregate_statistics():
                 size += resp_dict['size']
                 access_count += resp_dict['access_count']
                 miss_rate += resp_dict['miss_rate']
+                hit_rate += resp_dict['hit_rate']
+                key_count += resp_dict['key_count']
                 active_count += 1
     if active_count > 0:
         statistics = {
-            'time': str(datetime.datetime.now()),
             'size': size/active_count, 
+            'key_count': key_count/active_count,
             'access_count': access_count/active_count,
             'miss_rate': miss_rate/active_count,
-            'active_count': active_count
+            'active_count': active_count,
+            'hit_rate': hit_rate/active_count
         }
         
         return statistics
     
     statistics = {
-            'time': str(datetime.datetime.now()),
             'size': 0, 
             'access_count': 0,
+            'key_count': 0,
             'miss_rate': 0,
+            'hit_rate': 0,
             'active_count': 0
         }
     return statistics
