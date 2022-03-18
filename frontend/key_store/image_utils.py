@@ -63,12 +63,6 @@ def download_image(key):
     print("downloaded")
     return base64_image
 
-def purge_images():
-    s3_del = boto3.resource('s3',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
-    bucket = s3_del.Bucket('image-bucket-a2')
-    bucket.objects.all().delete()
-    return True
-
 
 def write_image_base64(filename):
     """ Write image out in base64

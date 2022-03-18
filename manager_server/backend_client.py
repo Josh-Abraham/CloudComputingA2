@@ -1,6 +1,6 @@
-from manager_server import webapp, memcache_pool
+from manager_server import webapp, memcache_pool, ec2_lifecycle
 from flask import request
-from manager_server import ec2_lifecycle
+from manager_server.s3_storage import purge_images
 from frontend.db_connection import get_db 
 import json, time, requests, threading
 
@@ -114,7 +114,14 @@ def clear_cache_pool():
 
 @webapp.route('/clear_data', methods = ['POST'])
 def clear_data():
-    # TODO: Call clear on S3 Data
+    
+    cnx = get_db()
+    cursor = cnx.cursor(buffered = True)
+    query_del = ''' DELETE from image_table; '''
+    cursor.execute(query_del)
+    cnx.commit()
+
+    purge_images()
     return webapp.response_class(
             response = json.dumps("OK"),
             status=200,
