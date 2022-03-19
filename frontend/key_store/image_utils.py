@@ -2,8 +2,7 @@ from frontend.config import aws_config, UPLOAD_FOLDER
 import os, requests, base64
 from frontend.db_connection import get_db
 from frontend.key_store import s3_storage
-from manager_server.backend_client import total_active_node, hash_key
-import tempfile
+import tempfile, json
 import boto3
 from botocore.config import Config
 ALLOWED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif'}
@@ -19,7 +18,10 @@ my_config = Config(
 
 s3 =boto3.client('s3',config=my_config,aws_access_key_id= aws_config['aws_access_key_id'], aws_secret_access_key= aws_config['aws_secret_access_key'])
 
+backend_app = "http://localhost:5002"
+
 def upload_image(request,key):
+    global backend_app
     img_url = request.form.get('img_url')
     if img_url == "":
         file = request.files['file']
@@ -30,8 +32,10 @@ def upload_image(request,key):
             s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
             print("uploaded")
             #TODO: memcache invalidate
-            jsonReq = {"key":key}
-            ip=hash_key(key)[1]
+            jsonReq={"keyReq":key}
+            ip_resp = requests.get(backend_app + '/hash_key', json=jsonReq)
+            ip_dict = json.loads(ip_resp.content.decode('utf-8'))
+            ip=ip_dict[1]
             res = requests.post('http://'+ str(ip) +':5000/invalidate', json=jsonReq)
             return write_img_db(key, key)
             # return "SAVED"
@@ -51,7 +55,10 @@ def upload_image(request,key):
             os.remove(filename)
             s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
             #TODO: memcache invalidate
-            ip=hash_key(key)[1]
+            jsonReq={"keyReq":key}
+            ip_resp = requests.get(backend_app + '/hash_key', json=jsonReq)
+            ip_dict = json.loads(ip_resp.content.decode('utf-8'))
+            ip=ip_dict[1]
             res = requests.post('http://'+ str(ip) +':5000/invalidate', json=jsonReq)
             return write_img_db(key, key)
     return "INVALID"

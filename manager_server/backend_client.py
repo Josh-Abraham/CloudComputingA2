@@ -10,9 +10,6 @@ STATES = ['Starting', 'Stopping']
 
 pool_params = {
     'mode': 'manual',
-    'settings': {
-        'size': 0
-    }
 }
 
 @webapp.route('/', methods = ['GET'])
@@ -96,14 +93,34 @@ def refresh_configuration():
             mimetype='application/json'
         )
 
+@webapp.route('/setCachePoolConfig', methods = ['POST'])
+def set_cache_pool_config():
+    global pool_params
+    pool_params = request.get_json(force = True)
+    return webapp.response_class(
+            response = json.dumps("OK"),
+            status=200,
+            mimetype='application/json'
+        )
+
+@webapp.route('/getCachePoolConfig', methods = ['GET'])
+def get_cache_pool_config():
+    global pool_params
+    
+    return webapp.response_class(
+            response = json.dumps(pool_params),
+            status=200,
+            mimetype='application/json'
+        )
+
 @webapp.route('/clear_cache_pool', methods = ['POST'])
 def clear_cache_pool():
     """ Clear cache content
     """
     for host in memcache_pool:
         address_ip = memcache_pool[host]
-        print('IP ' + address_ip)
         if not address_ip == None and not address_ip in STATES:
+            print('IP ' + address_ip)
             # Only need to clear active ports
             address = 'http://' + str(address_ip) + ':5000/clear'
             res = requests.post(address)
@@ -126,6 +143,26 @@ def clear_data():
     purge_images()
     return webapp.response_class(
             response = json.dumps("OK"),
+            status=200,
+            mimetype='application/json'
+        )
+
+
+@webapp.route('/hash_key', methods = ['GET'])
+def hash_key():
+    '''gives us which memcache instance a key should be saved or located given
+    the key to hash and the number of active nodes
+
+    returns a tuple containing the memcache id and ip'''
+    json_obj = request.get_json(force=True)
+    key = json_obj['keyReq']
+    hash_val=hashlib.md5(key.encode()).hexdigest()
+    hash_val=int(hash_val, base=16)
+    index=(hash_val % 16)+1
+    active_node,active_list= total_active_node()
+    memcache_no=index % active_node
+    return webapp.response_class(
+            response = json.dumps(active_list[memcache_no]),
             status=200,
             mimetype='application/json'
         )
@@ -223,20 +260,7 @@ def total_active_node(): #or we maintain a global variable
             count+=1
             active_list.append((id,ip))
     return count, active_list
-
-def hash_key(key: str):
-    '''gives us which memcache instance a key should be saved or located given
-    the key to hash and the number of active nodes
-
-    returns a tuple containing the memcache id and ip'''
-
-    hash_val=hashlib.md5(key.encode()).hexdigest()
-    hash_val=int(hash_val, base=16)
-    index=(hash_val % 16)+1
-    active_node,active_list= total_active_node()
-    memcache_no=index % active_node
-    return(active_list[memcache_no])
-
+    
 cache_params = {
     'max_capacity': 2,
     'replacement_policy': 'Least Recently Used',

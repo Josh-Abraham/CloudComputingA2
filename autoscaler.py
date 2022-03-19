@@ -3,7 +3,7 @@ import pandas as pd
 from botocore.exceptions import ClientError
 from botocore.config import Config
 
-instance_ids = ['i-04064013ac1862adf', 'i-0360438eeb0ed4afc']
+instance_ids = ['i-04064013ac1862adf', 'i-0360438eeb0ed4afc', 'i-0cc80fcbd4dc96d6c', "i-012533eda9b15248f", "i-04b2f2abb77a085a8", "i-00f92c02d4a89d8bf", "i-04d218436060eaa68", "i-05a8c558bbab9cfdb"]
 
 
 resp = requests.get("http://169.254.169.254/latest/user-data/")
@@ -42,7 +42,7 @@ def connect_to_database():
                                    database=db_config['database'])          
 
 def get_stats_logs():
-    start_time = round((time.time() - 30*60) * 1000)
+    start_time = round((time.time() - 60) * 1000)
     current_time = round(time.time() * 1000)
 
     response = log_client.get_log_events(
@@ -84,9 +84,9 @@ def get_pool_ready_count():
             raise
 
     try:
-        response = ec2.describe_instances(InstanceIds=instance_ids, DryRun=False)
-        for instance in response['Reservations']:
-            inst_name = instance['Instances'][0]['State']['Name']
+        for instance in instance_ids:
+            response = ec2.describe_instances(InstanceIds=[instance], DryRun=False)
+            inst_name = response['Reservations'][0]['Instances'][0]['State']['Name']
             if (inst_name == 'pending' or inst_name == 'shutting-down' or inst_name == 'stopping'):
                 unstable_count += 1
             elif (inst_name == 'running'):
@@ -109,46 +109,50 @@ def auto_scale():
     global db, backend_app
 
     while (True):
-        # runs every minute
-        unstable_count, active_count = get_pool_ready_count()
-        # Unstable implies instances are stil starting, stopping or pending
-        print("Active Count " + str(active_count))
-        print("Unstable Count " + str(unstable_count))
+        resp = requests.get(backend_app + "/getCachePoolConfig")
+        pool_params = json.loads(resp.content.decode('utf-8'))
+        print(pool_params)
+        if pool_params['mode'] == 'automatic':
+            # runs every minute
+            unstable_count, active_count = get_pool_ready_count()
+            # Unstable implies instances are stil starting, stopping or pending
+            print("Active Count " + str(active_count))
+            print("Unstable Count " + str(unstable_count))
 
-        if unstable_count == 0:
-            miss_rate = get_stats_logs()
-            print("Current Miss Rate: " + str(miss_rate))
-            # Miss rate is none, when no logs have been printed for this time period
-            if not miss_rate == None:
-                cache_policy = get_cache_policy()
-                print(cache_policy)
-                if not cache_policy == None:
-                    if miss_rate > cache_policy[1]:
-                        # Max Miss Rate, Scale up instances
-                        print("Scale up")
-                        expand_factor = cache_policy[3]
-                        max_startup = round(expand_factor * active_count)
-                        if max_startup + active_count > 8:
-                            # Start a max of 8 nodes
-                            max_startup = 8 - active_count
-                        
-                        for i in range(max_startup):
-                            print("Call startup node")
-                            requests.post(backend_app + '/startInstance')
+            if unstable_count == 0:
+                miss_rate = get_stats_logs()
+                print("Current Miss Rate: " + str(miss_rate))
+                # Miss rate is none, when no logs have been printed for this time period
+                if not miss_rate == None:
+                    cache_policy = get_cache_policy()
+                    print(cache_policy)
+                    if not cache_policy == None:
+                        if miss_rate > cache_policy[1]:
+                            # Max Miss Rate, Scale up instances
+                            print("Scale up")
+                            expand_factor = cache_policy[3]
+                            max_startup = round(expand_factor * active_count)
+                            if max_startup + active_count > 8:
+                                # Start a max of 8 nodes
+                                max_startup = 8 - active_count
+                            
+                            for i in range(max_startup):
+                                print("Call startup node")
+                                requests.post(backend_app + '/startInstance')
 
-                    # Get current memcache count, then scale up max 8
-                    elif miss_rate < cache_policy[2]:
-                        # Min Miss Rate, Scale up instances
-                        print("Scale Down")
-                        shrink_factor = cache_policy[4]
-                        max_shutdown = round(shrink_factor * active_count)
-                        if  active_count - max_shutdown < 1:
-                            # Shutdown max of all but 1
-                            max_shutdown = active_count - 1
-                        
-                        for i in range(max_shutdown):
-                            print("Call shutdown node")
-                            requests.post(backend_app + '/stopInstance')
+                        # Get current memcache count, then scale up max 8
+                        elif miss_rate < cache_policy[2]:
+                            # Min Miss Rate, Scale up instances
+                            print("Scale Down")
+                            shrink_factor = cache_policy[4]
+                            max_shutdown = round(shrink_factor * active_count)
+                            if  active_count - max_shutdown < 1:
+                                # Shutdown max of all but 1
+                                max_shutdown = active_count - 1
+                            
+                            for i in range(max_shutdown):
+                                print("Call shutdown node")
+                                requests.post(backend_app + '/stopInstance')
         time.sleep(60)
         
 
