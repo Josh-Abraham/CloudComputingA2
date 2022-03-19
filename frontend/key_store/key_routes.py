@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template, request, send_file, redirect
 from frontend.db_connection import get_db
 from frontend.key_store.image_utils import *
-import requests 
+import requests, json
 
 image_routes = Blueprint("image_routes", __name__)
 
@@ -18,6 +18,8 @@ def add_key():
     if request.method == 'POST':
         key = request.form.get('key')
         status = upload_image(request, key)
+        node=hash_key(key)
+        print(node[1])
         return render_template("add_key.html", save_status=status)
     return render_template("add_key.html")
 

@@ -1,4 +1,3 @@
-from multiprocessing import pool
 from manager_server import webapp, memcache_pool
 from flask import request
 from manager_server import ec2_lifecycle
@@ -262,7 +261,6 @@ def total_active_node(): #or we maintain a global variable
             active_list.append((id,ip))
     return count, active_list
     
-
 cache_params = {
     'max_capacity': 2,
     'replacement_policy': 'Least Recently Used',
