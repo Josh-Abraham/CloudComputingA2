@@ -18,8 +18,6 @@ def add_key():
     if request.method == 'POST':
         key = request.form.get('key')
         status = upload_image(request, key)
-        node=hash_key(key)
-        print(node[1])
         return render_template("add_key.html", save_status=status)
     return render_template("add_key.html")
 

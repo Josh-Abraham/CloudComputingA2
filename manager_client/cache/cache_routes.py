@@ -239,12 +239,6 @@ def navigate():
 	print(hostname)
 	return redirect('http://'+hostname + ':5000')
 
-@cache_routes.route('/navigate')
-def navigate():
-	hostname = request.headers.get('Host').split(':')[0]
-	print(hostname)
-	return redirect('http://'+hostname + ':5000')
-
 
 def manual_update_pool(cmd):
     if cmd == 'increase':

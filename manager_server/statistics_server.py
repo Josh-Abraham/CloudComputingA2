@@ -46,15 +46,18 @@ def get_aggregate_statistics():
     for host in memcache_pool:
             address_ip = memcache_pool[host]
             if not address_ip == None and not address_ip in STATES: 
-                address = 'http://' + str(address_ip) + ':5000/getStatistics'
-                resp = requests.get(address)
-                resp_dict = json.loads(resp.content.decode("utf-8"))
-                size += resp_dict['size']
-                access_count += resp_dict['access_count']
-                miss_rate += resp_dict['miss_rate']
-                hit_rate += resp_dict['hit_rate']
-                key_count += resp_dict['key_count']
-                active_count += 1
+                try:
+                    address = 'http://' + str(address_ip) + ':5000/getStatistics'
+                    resp = requests.get(address)
+                    resp_dict = json.loads(resp.content.decode("utf-8"))
+                    size += resp_dict['size']
+                    access_count += resp_dict['access_count']
+                    miss_rate += resp_dict['miss_rate']
+                    hit_rate += resp_dict['hit_rate']
+                    key_count += resp_dict['key_count']
+                    active_count += 1
+                except:
+                    print("")
     if active_count > 0:
         statistics = {
             'size': size/active_count, 

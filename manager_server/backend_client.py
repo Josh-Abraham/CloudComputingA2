@@ -25,6 +25,9 @@ def ready_request():
     req_json = request.get_json(force=True)
     memcache_pool[req_json['instance_id']] = req_json['ip_address']
     print('New Host address:' + memcache_pool[req_json['instance_id']])
+    notification = node_states()
+    jsonReq={"message":notification}
+    resp = requests.post("http://localhost:5000/show_notification", json=jsonReq)
 
     return get_cache_response()
 
@@ -36,6 +39,9 @@ def start_instance():
     if not id == None:
         print('Starting up ' + id)
         memcache_pool[id] = 'Starting'
+        notification = node_states()
+        jsonReq={"message":notification}
+        resp = requests.post("http://localhost:5000/show_notification", json=jsonReq)
         ec2_lifecycle.startup(id)
     
     return get_response(True)
@@ -49,6 +55,9 @@ def stop_instance():
     if not id == None:
         print('Shutting down ' + id)
         memcache_pool[id] = 'Stopping'
+        notification = node_states()
+        jsonReq={"message":notification}
+        resp = requests.post("http://localhost:5000/show_notification", json=jsonReq)
         ec2_lifecycle.shutdown(id)
     return get_response(True)
 
@@ -261,6 +270,24 @@ def total_active_node(): #or we maintain a global variable
             active_list.append((id,ip))
     return count, active_list
     
+def node_states():
+    stopping_nodes, starting_nodes, active_nodes = 0, 0, 0
+    for _, ip in memcache_pool.items():
+        if not ip == None:
+            if ip == 'Stopping':
+                stopping_nodes += 1
+            elif ip == 'Starting':
+                starting_nodes += 1
+            else:
+                active_nodes += 1
+    message = {
+        "active": active_nodes,
+        "starting": starting_nodes,
+        "stopping": stopping_nodes,
+    }
+    return message
+
+
 cache_params = {
     'max_capacity': 2,
     'replacement_policy': 'Least Recently Used',

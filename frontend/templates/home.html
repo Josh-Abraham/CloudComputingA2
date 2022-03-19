@@ -6,6 +6,26 @@
 <html>
     <body>
         {% include "top_bar.html" %}
+        {%if pool_notification is defined %}
+            {%if pool_notification != "" %}
+                <form action="/clear_notification" method="post" class="notification">
+                    <div class="form-row" style="line-height:20px; padding-bottom: 10px;">
+                        Nodes Starting: {{ pool_notification['message']['starting'] }}
+                    </div>
+                    <div class="form-row" style="line-height:20px; padding-bottom: 10px;">
+                        Nodes Active: {{ pool_notification['message']['active'] }}
+                    </div>
+                    <div class="form-row" style="line-height:20px; padding-bottom: 10px;">
+                        Nodes Stopping: {{ pool_notification['message']['stopping'] }}
+                    </div>
+                    <input
+                        type="submit"
+                        id="clear_notification"
+                        class="clear_notification"
+                        value="X">
+                </form>
+            {%endif %}
+        {%endif %}
         <h3>
             ECE1779 Assignment Two   
         </h3>
