@@ -1,13 +1,12 @@
 from flask import Blueprint, jsonify, render_template, request, send_file, redirect
 from frontend.db_connection import get_db
 from frontend.key_store.image_utils import *
-from manager_server.backend_client import total_active_node, hash_key
 import requests 
 
 image_routes = Blueprint("image_routes", __name__)
 
 # Memcache host port
-cache_host = "http://localhost:5001"
+backend_app = "http://localhost:5002"
 
 
 @image_routes.route('/add_key', methods = ['GET','POST'])
@@ -19,8 +18,6 @@ def add_key():
     if request.method == 'POST':
         key = request.form.get('key')
         status = upload_image(request, key)
-        node=hash_key(key)
-        print(node[1])
         return render_template("add_key.html", save_status=status)
     return render_template("add_key.html")
 
@@ -38,7 +35,9 @@ def show_image():
         key = request.form.get('key')
         jsonReq={"keyReq":key}
         # TODO: Add Memcache get
-        ip=hash_key(key)[1]
+        ip_resp = requests.get(backend_app + '/hash_key', json=jsonReq)
+        ip_dict = json.loads(ip_resp.content.decode('utf-8'))
+        ip=ip_dict[1]
         res= requests.post('http://'+ str(ip) + ':5000/get', json=jsonReq)
         #res = None
         if(res == None or res.text=='Unknown key'):

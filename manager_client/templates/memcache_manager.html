@@ -109,14 +109,26 @@
                     <div class="form-row">
                         <div>
                             <h4>Select Memcache Pool Resizing</h4>
-                            <div>
-                                <input type="radio" id="manual" name="mode" value="Manual Mode" checked onclick="showManual()">
-                                <label for="manual">Manual Mode</label>
-                            </div>
-                            <div>
-                                <input type="radio" id="automtic" name="mode" value="Automatic Mode" onclick="showAuto()">
-                                <label for="automtic">Automatic Mode</label>
-                            </div>
+                            {% if pool_params['mode'] == 'manual' %}
+                                <div>
+                                    <input type="radio" id="manual" name="mode" value="Manual Mode" checked onclick="showManual()">
+                                    <label for="manual">Manual Mode</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="automtic" name="mode" value="Automatic Mode" onclick="showAuto()">
+                                    <label for="automtic">Automatic Mode</label>
+                                </div>
+                            {% else %}
+                                <div>
+                                    <input type="radio" id="manual" name="mode" value="Manual Mode" onclick="showManual()">
+                                    <label for="manual">Manual Mode</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="automtic" name="mode" value="Automatic Mode" checked onclick="showAuto()">
+                                    <label for="automtic">Automatic Mode</label>
+                                </div>
+                            {% endif %}
+                            
                             {% set item_count = memcache_pool|length %} 
                             <div id="manual_pool" style="display: block;">
                                 <h4>Adjust Pool Size</h4>
@@ -140,14 +152,22 @@
                                         {% if node_data["active"] + node_data["starting"] == 1 %} disabled {% endif %}
                                         >-1</button>
                                 </div>
+
+                                <input
+                                    type="submit"
+                                    id="set_pool_size"
+                                    name="manual"
+                                    class="submit-button"
+                                    style="width: 150px;"
+                                    value="Set to Manual Mode">
                             </div>
 
-                            <div id="auto_pool" style="display: none; width:220px">
+                            <div id="auto_pool" style="display: none; width:230px">
                                 <h4>Set Policy</h4>
                                 <div class="form-row">
                                     <div class="form-col">
-                                        <label for="maxMiss">Max Miss Rate: </label>
-                                        <label for="minMiss">Min Miss Rate: </label>
+                                        <label for="maxMiss">Max Miss Rate (%): </label>
+                                        <label for="minMiss">Min Miss Rate (%): </label>
                                         <label for="expRatio">Expansion Ratio: </label>
                                         <label for="shrinkRatio">Shrink Ratio: </label>
                                     </div>
@@ -185,6 +205,14 @@
                                     style="width: 150px;"
                                     value="Set Configuration">
                             </div>
+
+                            {% if pool_status is defined %}
+                                    {% if pool_status == "FALSE" %}
+                                        <h4 style="text-align: center; color: rgb(172, 16, 16); margin-top: 10px; margin-bottom: 0px">Invalid Values</h4>
+                                    {% else %}
+                                        <h4 style="text-align: center; color: green; margin-top: 10px; margin-bottom: 0px">Policy Updated</h4>
+                                    {% endif %}
+                            {% endif %}
                         </div>
                         <div style="margin-left: 20px">
                             <h4>Memcache Pool Node Status</h4>
@@ -202,6 +230,18 @@
             // Initialize the echarts instance based on the prepared dom
             var myChart = echarts.init(document.getElementById('memcachePool'));
             var memcache_pool = JSON.parse('{{ memcache_pool | tojson | safe}}')
+            var pool_params = JSON.parse('{{ pool_params | tojson | safe}}')
+            
+            if (pool_params['mode'] == 'automatic') {
+                document.getElementById("manual_pool").style.display="none";
+                document.getElementById("auto_pool").style.display="block";
+                var cache_policy = JSON.parse('{{ cache_policy | tojson | safe}}')
+                document.getElementById("maxMiss").value = cache_policy[1]
+                document.getElementById("minMiss").value = cache_policy[2]
+                document.getElementById("expRatio").value = cache_policy[3]
+                document.getElementById("shrinkRatio").value = cache_policy[4]
+
+            }
       
             // Specify the configuration items and data for the chart
             var option = {
