@@ -133,7 +133,7 @@ def auto_scale():
                             # Max Miss Rate, Scale up instances
                             print("Scale up")
                             expand_factor = cache_policy[3]
-                            max_startup = round(expand_factor * active_count)
+                            max_startup = round(expand_factor * active_count) - active_count
                             if max_startup + active_count > 8:
                                 # Start a max of 8 nodes
                                 max_startup = 8 - active_count
@@ -147,7 +147,7 @@ def auto_scale():
                             # Min Miss Rate, Scale up instances
                             print("Scale Down")
                             shrink_factor = cache_policy[4]
-                            max_shutdown = round(shrink_factor * active_count)
+                            max_shutdown = active_count - round(shrink_factor * active_count)
                             if  active_count - max_shutdown < 1:
                                 # Shutdown max of all but 1
                                 max_shutdown = active_count - 1
