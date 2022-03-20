@@ -35,9 +35,8 @@ def create_log(message):
 
     try:
         client.put_log_events(**log_event)
-        print("Log created")
     except:
-        print("Log not added")
+        print("")
 
 
 def get_aggregate_statistics():

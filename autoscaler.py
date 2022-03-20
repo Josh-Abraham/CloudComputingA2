@@ -96,13 +96,15 @@ def get_pool_ready_count():
         print(e)
 	
 def get_cache_policy():
-    cnx = db
+    cnx = connect_to_database()
     cursor = cnx.cursor(buffered = True)
     query = '''SELECT * FROM cache_policy WHERE param_key = (SELECT MAX(param_key) FROM cache_policy LIMIT 1)'''
     cursor.execute(query)
     if(cursor._rowcount):# if key exists in db
         cache_policy=cursor.fetchone()
+        cnx.close()
         return cache_policy
+    cnx.close()
     return None
 
 def auto_scale():
@@ -158,6 +160,4 @@ def auto_scale():
 
 
 
-
-db = connect_to_database()
 auto_scale()

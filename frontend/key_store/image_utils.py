@@ -27,17 +27,20 @@ def upload_image(request,key):
         file = request.files['file']
         _, extension = os.path.splitext(file.filename)
         if extension.lower() in ALLOWED_EXTENSIONS:
-            print("trying")
-            base64_image = base64.b64encode(file.read())
-            s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
-            print("uploaded")
-            #TODO: memcache invalidate
-            jsonReq={"keyReq":key}
-            ip_resp = requests.get(backend_app + '/hash_key', json=jsonReq)
-            ip_dict = json.loads(ip_resp.content.decode('utf-8'))
-            ip=ip_dict[1]
-            res = requests.post('http://'+ str(ip) +':5000/invalidate', json=jsonReq)
-            return write_img_db(key, key)
+            try:
+                print("trying")
+                base64_image = base64.b64encode(file.read())
+                s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
+                print("uploaded")
+                #TODO: memcache invalidate
+                jsonReq={"keyReq":key}
+                ip_resp = requests.get(backend_app + '/hash_key', json=jsonReq)
+                ip_dict = json.loads(ip_resp.content.decode('utf-8'))
+                ip=ip_dict[1]
+                res = requests.post('http://'+ str(ip) +':5000/invalidate', json=jsonReq)
+                return write_img_db(key, key)
+            except:
+                return "INVALID"
             # return "SAVED"
         return "INVALID"
 
@@ -55,12 +58,15 @@ def upload_image(request,key):
             os.remove(filename)
             s3.put_object(Body=base64_image,Key=key,Bucket="image-bucket-a2",ContentType='image')
             #TODO: memcache invalidate
-            jsonReq={"keyReq":key}
-            ip_resp = requests.get(backend_app + '/hash_key', json=jsonReq)
-            ip_dict = json.loads(ip_resp.content.decode('utf-8'))
-            ip=ip_dict[1]
-            res = requests.post('http://'+ str(ip) +':5000/invalidate', json=jsonReq)
-            return write_img_db(key, key)
+            try:
+                jsonReq={"keyReq":key}
+                ip_resp = requests.get(backend_app + '/hash_key', json=jsonReq)
+                ip_dict = json.loads(ip_resp.content.decode('utf-8'))
+                ip=ip_dict[1]
+                res = requests.post('http://'+ str(ip) +':5000/invalidate', json=jsonReq)
+                return write_img_db(key, key)
+            except:
+                return "INVALID"
     return "INVALID"
 
 def download_image(key):

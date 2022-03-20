@@ -27,8 +27,10 @@ def ready_request():
     print('New Host address:' + memcache_pool[req_json['instance_id']])
     notification = node_states()
     jsonReq={"message":notification}
-    resp = requests.post("http://localhost:5000/show_notification", json=jsonReq)
-
+    try:
+        resp = requests.post("http://localhost:5000/show_notification", json=jsonReq)
+    except:
+        print("Frontend not started yet")
     return get_cache_response()
 
 @webapp.route('/startInstance', methods = ['POST', 'GET'])
@@ -41,7 +43,10 @@ def start_instance():
         memcache_pool[id] = 'Starting'
         notification = node_states()
         jsonReq={"message":notification}
-        resp = requests.post("http://localhost:5000/show_notification", json=jsonReq)
+        try:
+            resp = requests.post("http://localhost:5000/show_notification", json=jsonReq)
+        except:
+            print("Frontend not started yet")
         ec2_lifecycle.startup(id)
     
     return get_response(True)
@@ -57,7 +62,10 @@ def stop_instance():
         memcache_pool[id] = 'Stopping'
         notification = node_states()
         jsonReq={"message":notification}
-        resp = requests.post("http://localhost:5000/show_notification", json=jsonReq)
+        try:
+            resp = requests.post("http://localhost:5000/show_notification", json=jsonReq)
+        except:
+            print("Frontend not started yet")
         ec2_lifecycle.shutdown(id)
     return get_response(True)
 

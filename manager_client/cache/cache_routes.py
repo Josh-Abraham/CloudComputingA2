@@ -131,9 +131,13 @@ def set_pool_config():
             max_miss_rate = request.form.get("maxMiss")
             min_miss_rate = request.form.get("minMiss")
             exp_ratio = request.form.get("expRatio")
-            shrink_ratio = request.form.get("shrinkRatio")
-            if (max_miss_rate.replace(".", "", 1).isdigit() and min_miss_rate.replace(".", "", 1).isdigit() and exp_ratio.replace(".", "", 1).isdigit() and shrink_ratio.replace(".", "", 1).isdigit()):
-                if max_miss_rate > min_miss_rate:
+            shrink_ratio = request.form.get("shrinkRatio") 
+            if is_float(max_miss_rate) and is_float(min_miss_rate) and is_float(exp_ratio) and is_float(shrink_ratio):
+                max_miss_rate = float(max_miss_rate)
+                min_miss_rate = float(min_miss_rate)
+                exp_ratio = float(exp_ratio)
+                shrink_ratio = float(shrink_ratio)
+                if max_miss_rate > min_miss_rate and max_miss_rate >= 0 and min_miss_rate >= 0 and shrink_ratio >=0 and exp_ratio >= 0:
                     cnx = get_db()
                     cursor = cnx.cursor(buffered=True)
                     query_add = ''' INSERT INTO cache_policy (max_miss_rate, min_miss_rate, exp_ratio, shrink_ratio) VALUES (%s,%s,%s,%s)'''
@@ -245,3 +249,11 @@ def manual_update_pool(cmd):
         resp = requests.post(backend_app + '/startInstance')
     else:
         resp = requests.post(backend_app + '/stopInstance')
+
+def is_float(value):
+  try:
+    float(value)
+    return True
+  except:
+    return False
+

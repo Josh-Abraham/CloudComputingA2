@@ -9,6 +9,7 @@
         {%if pool_notification is defined %}
             {%if pool_notification != "" %}
                 <form action="/clear_notification" method="post" class="notification">
+                    <h4>Memcache Pool Changed</h4>
                     <div class="form-row" style="line-height:20px; padding-bottom: 10px;">
                         Nodes Starting: {{ pool_notification['message']['starting'] }}
                     </div>
