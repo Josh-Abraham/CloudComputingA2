@@ -5,6 +5,9 @@ import requests
 
 api_routes = Blueprint("api_routes", __name__)
 
+# Backend App Host Port
+backend_app = "http://localhost:5002"
+
 # Memcache host port
 cache_host = "http://localhost:5001"
 
@@ -26,8 +29,11 @@ def list_keys():
         #make list of all keys in Database
         for key in cursor:
             keys.append(key[0])
+
+        #close db connection
         cnx.close()
         data_out={"success":"true" , "keys":keys}
+        print("inside list_keys 123")
         return jsonify(data_out)
 
     except Exception as e:
@@ -48,22 +54,26 @@ def one_key(key_value):
     """
     try:
         jsonReq={"keyReq":key_value}
-        res= requests.post('http://localhost:5001/get', json=jsonReq)
-        if(res.text=='Unknown key'):#res.text is the file path of the image from the memcache
+        ip_resp = requests.get(backend_app + '/hash_key', json=jsonReq)
+        ip_dict = json.loads(ip_resp.content.decode('utf-8'))
+        ip=ip_dict[1]
+        res= requests.post('http://'+ str(ip) + ':5000/get', json=jsonReq)
+        #res = None
+        if(res == None or res.text=='Unknown key'):
             #get from db and update memcache
             cnx = get_db()
             cursor = cnx.cursor(buffered=True)
             query = "SELECT image_tag FROM image_table where image_key= %s"
-            cursor.execute(query, (key_value,))
+            cursor.execute(query, (key,))
             if(cursor._rowcount):# if key exists in db
                 image_tag=str(cursor.fetchone()[0]) #cursor[0] is the imagetag recieved from the db
                 #close the db connection
                 cnx.close()
                 #put into memcache
-                filename=image_tag
-                base64_image = write_image_base64(filename)
-                jsonReq = {key_value:base64_image}
-                res = requests.post(cache_host + '/put', json=jsonReq)
+                image=download_image(image_tag)
+                jsonReq = {key:image}
+                # TODO: Add to Cache
+                res = requests.post('http://'+ str(ip) + ':5000/put', json=jsonReq)
                 data_out={"success":"true" , "content":base64_image}
                 #output json with db values
                 return jsonify(data_out)
