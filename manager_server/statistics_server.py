@@ -6,8 +6,9 @@ from manager_server import memcache_pool
 client = boto3.client('logs', region_name="us-east-1", aws_access_key_id=aws_config['aws_access_key_id'], aws_secret_access_key=aws_config['aws_secret_access_key'])
 STATES = ['Starting', 'Stopping']
 previous_stats = {
-    'miss_rate': 0,
-    'hit_rate': 0
+    'miss_count': 0,
+    'hit_count': 0,
+    'count': 0
 }
 
 def thread_stats():
@@ -62,20 +63,15 @@ def get_aggregate_statistics():
                 except:
                     print("")
     if active_count > 0:
-        relative_miss_rate = miss_rate - previous_stats['miss_rate']
-        relative_hit_rate = hit_rate - previous_stats['hit_rate']
-        if relative_miss_rate < 0 or relative_hit_rate < 0:
-            # cache_rate
-            relative_miss_rate = miss_rate
-            relative_hit_rate = hit_rate
+        rel_hit_rate, rel_miss_rate = update_rates(hit_rate, miss_rate)
 
         statistics = {
             'size': size/active_count, 
             'key_count': key_count/active_count,
             'access_count': access_count/active_count,
-            'miss_rate': relative_miss_rate/active_count,
+            'miss_rate': rel_miss_rate,
             'active_count': active_count,
-            'hit_rate': relative_hit_rate/active_count
+            'hit_rate': rel_hit_rate
         }
 
         previous_stats['miss_rate'] = miss_rate
@@ -92,3 +88,26 @@ def get_aggregate_statistics():
             'active_count': 0
         }
     return statistics
+
+def update_rates(hit_count, miss_count):
+    global previous_stats
+    if previous_stats['count'] == 20:
+        previous_stats['count'] = 0
+        previous_stats['hit_count'] = hit_count
+        previous_stats['miss_count'] = miss_count
+        return 0, 0
+    else:
+        previous_stats['count'] += 1
+        if hit_count < previous_stats['hit_count'] or miss_count < previous_stats['miss_count']:
+            previous_stats['hit_count'] = hit_count
+            previous_stats['miss_count'] = miss_count
+        
+        rel_hit_count = hit_count - previous_stats['hit_count']
+        rel_miss_count = miss_count - previous_stats['miss_count']
+        if (rel_hit_count + rel_miss_count == 0):
+            hit_rate = 0
+            miss_rate = 0
+        else:
+            hit_rate = (rel_hit_count/(rel_hit_count + rel_miss_count))*100
+            miss_rate = (rel_miss_count/(rel_hit_count + rel_miss_count))*100
+        return hit_rate, miss_rate

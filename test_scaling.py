@@ -1,0 +1,17 @@
+import requests, time
+
+requests.post("http://localhost:5000/api/key/test1")
+requests.post("http://localhost:5000/api/key/test2")
+requests.post("http://localhost:5000/api/key/test3")
+time.sleep(60)
+requests.post("http://localhost:5000/api/key/test4")
+requests.post("http://localhost:5000/api/key/test5")
+requests.post("http://localhost:5000/api/key/test6")
+time.sleep(60)
+requests.post("http://localhost:5000/api/key/test7")
+requests.post("http://localhost:5000/api/key/test8")
+requests.post("http://localhost:5000/api/key/test9")
+time.sleep(60)
+requests.post("http://localhost:5000/api/key/test10")
+requests.post("http://localhost:5000/api/key/test11")
+requests.post("http://localhost:5000/api/key/test12")
