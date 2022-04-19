@@ -64,17 +64,18 @@ def one_key(key_value):
             cnx = get_db()
             cursor = cnx.cursor(buffered=True)
             query = "SELECT image_tag FROM image_table where image_key= %s"
-            cursor.execute(query, (key,))
+            cursor.execute(query, (key_value,))
+            
             if(cursor._rowcount):# if key exists in db
                 image_tag=str(cursor.fetchone()[0]) #cursor[0] is the imagetag recieved from the db
                 #close the db connection
                 cnx.close()
                 #put into memcache
                 image=download_image(image_tag)
-                jsonReq = {key:image}
+                jsonReq = {key_value:image}
                 # TODO: Add to Cache
                 res = requests.post('http://'+ str(ip) + ':5000/put', json=jsonReq)
-                data_out={"success":"true" , "content":base64_image}
+                data_out={"success":"true" , "content":image}
                 #output json with db values
                 return jsonify(data_out)
 
@@ -114,5 +115,3 @@ def upload():
     except Exception as e:
         error_message={"success":"false" , "error":{"code":"500 Internal Server Error", "message":"Something Went Wrong"}}
         return(jsonify(error_message))
-
-
