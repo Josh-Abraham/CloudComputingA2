@@ -1,4 +1,4 @@
-# CloudComputingA1
+# CloudComputingA2
 
 Assignment 2 for ECE 1779
 
