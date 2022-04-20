@@ -4,9 +4,10 @@ Assignment 2 for ECE 1779
 
 Projet uses: EC2, RDS, S3, Cloudwatch
 
-## Group Contributions
+### Group Contributions
 ![group_contributions](https://github.com/Josh-Abraham/CloudComputingA2/blob/main/Documents/contrib.JPG?raw=true)
 
+### Project Description
 To use our web application, go to the server host at port 5000 after running the start.sh program.
 The web frontend has 3 main use cases:
   *	Add Image-key
